@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="fw-bold mb-1">Casos registrados</h1>
+    <p class="text-muted mb-0">Consulta de flujos completos del sistema TRACKER.</p>
+  </div>
+  <a href="/cases/new" class="btn btn-primary rounded-pill px-4">Nuevo caso</a>
+</div>
+<div class="card glass-card border-0"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-dark table-hover align-middle mb-0">
+<thead><tr><th>Caso</th><th>Proceso</th><th>Tienda</th><th>Tipo</th><th>Subzona</th><th>Fecha</th><th></th></tr></thead>
+<tbody>
+{% for c in cases %}
+<tr>
+<td>{{ c.case_number }}</td><td>{{ c.process }}</td><td>{{ c.store_name }}</td><td>{{ c.novelty_type }}</td><td>{{ c.subzone }}</td><td>{{ c.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td><a class="btn btn-sm btn-outline-info rounded-pill" href="/cases/{{ c.id }}">Ver</a></td>
+</tr>
+{% else %}<tr><td colspan="7" class="text-center py-5">No existen casos registrados.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

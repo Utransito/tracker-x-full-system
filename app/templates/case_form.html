@@ -1,0 +1,583 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+  <div>
+    <h1 class="fw-bold mb-1">TRACKER · Nuevo caso</h1>
+    <p class="text-muted mb-0">Flujo corregido con navegación por botón <strong>Siguiente</strong> y validación antes de avanzar.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/cases" class="btn btn-outline-light rounded-pill px-4">Ver casos</a>
+    <button form="trackerForm" class="btn btn-primary rounded-pill px-4"><i class="bi bi-save me-2"></i>Guardar caso</button>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="trackerForm">
+  <input type="hidden" name="police_unit" value="">
+  <input type="hidden" name="requested_by" value="">
+  <input type="hidden" name="victims_json" id="victims_json">
+  <input type="hidden" name="suspects_json" id="suspects_json">
+  <input type="hidden" name="merchandise_json" id="merchandise_json">
+  <input type="hidden" name="photo_notes_json" id="photo_notes_json">
+  <input type="hidden" name="vehicles_json" id="vehicles_json">
+  <input type="hidden" name="processed_json" id="processed_json">
+
+  <div class="tracker-page">
+    <div class="tracker-layout">
+      <section class="tracker-banner">
+        <div class="tracker-header-title">Sistema Integrado de Seguridad Empresarial</div>
+        <div class="tracker-subtitle text-center mt-2">No se puede avanzar de pantalla sin completar la actual. La navegación es por botones.</div>
+        <div class="wizard-nav">
+          <button type="button" class="wizard-btn active" data-step="0"><i class="bi bi-alarm-fill"></i><span>ALERTA</span></button>
+          <button type="button" class="wizard-btn" data-step="1"><i class="bi bi-geo-alt-fill"></i><span>ESPACIO TIEMPO</span></button>
+          <button type="button" class="wizard-btn" data-step="2"><i class="bi bi-journal-richtext"></i><span>NOVEDAD</span></button>
+          <button type="button" class="wizard-btn" data-step="3"><i class="bi bi-people-fill"></i><span>VÍCTIMA</span></button>
+          <button type="button" class="wizard-btn" data-step="4"><i class="bi bi-person-bounding-box"></i><span>PERFILES</span></button>
+          <button type="button" class="wizard-btn" data-step="5"><i class="bi bi-cart-fill"></i><span>MERCADERÍA</span></button>
+          <button type="button" class="wizard-btn" data-step="6"><i class="bi bi-camera-fill"></i><span>FOTOGRAFÍAS</span></button>
+          <button type="button" class="wizard-btn" data-step="7"><i class="bi bi-bank2"></i><span>DELEGACIÓN</span></button>
+          <button type="button" class="wizard-btn" data-step="8"><i class="bi bi-diagram-2-fill"></i><span>PROCESADOS</span></button>
+        </div>
+      </section>
+
+      <div id="wizardError" class="wizard-error d-none"></div>
+
+      
+
+<section class="module-card wizard-step active" id="step-alerta">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-alarm-fill"></i></div><div><h3>ALERTA</h3><p>Pantalla 01 · Corrección puntual solo de alerta.</p></div></div>
+        <div class="module-body">
+          <div class="event-grid">
+            <div class="field-span-3">
+              <label class="form-label">Generación de alerta</label>
+              <select name="alarm_activated" id="alarm_activated" class="form-select step1-core" onchange="toggleAlarm()" onchange="toggleAlarm()">
+                <option value="SI">SI</option>
+                <option value="NO" selected>NO</option>
+              </select>
+            </div>
+            <div class="field-span-3">
+              <label class="form-label">Proceso</label>
+              <select name="process" id="process" class="form-select step1-core" onchange="toggleProcessRules()" onchange="toggleProcessRules()">
+                <option value=""></option>
+                <option value="HURTO">HURTO</option>
+                <option value="DELITO">DELITO</option>
+              </select>
+            </div>
+            <div class="field-span-3">
+              <label class="form-label">Actividad operativa</label>
+              <select name="sub_process" id="sub_process" class="form-select step1-core">
+                <option value=""></option>
+                <option value="Seguimiento sospechoso">Seguimiento sospechoso</option>
+                <option value="Registro novedad">Registro novedad</option>
+              </select>
+            </div>
+            <div class="field-span-3">
+              <div class="rule-box small" id="alarmInfo"><strong>Regla:</strong> Proceso y Actividad operativa siempre visibles. Si la alerta es <strong>NO</strong>, solo se oculta el bloque operativo amarillo.</div>
+            </div>
+          </div>
+
+          <div id="alarmBlock" class="mt-3 d-none">
+            <div class="event-grid">
+              <div class="field-span-6"><label class="form-label">Nombre del jefe del local</label><input name="chief_name" id="chief_name" class="form-control step1-conditional"></div>
+              <div class="field-span-3"><label class="form-label">Hora activación alarma</label><input name="alert_time" id="alert_time" type="time" class="form-control step1-conditional"></div>
+              <div class="field-span-3"><label class="form-label">Empresa de seguridad</label><select name="security_company" id="security_company" class="form-select step1-conditional"><option value=""></option>{% for v in security_companies %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+              <div class="field-span-3"><label class="form-label">Operador empresa seguridad</label><input name="security_operator" id="security_operator" class="form-control step1-conditional"></div>
+              <div class="field-span-3"><label class="form-label">Hora comunica al centro análisis</label><input name="center_operator_time" id="center_operator_time" type="time" class="form-control step1-conditional"></div>
+              <div class="field-span-6"><label class="form-label">Nombre operador centro análisis</label><input name="center_operator_name" id="center_operator_name" class="form-control step1-conditional"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-espacio-tiempo">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-geo-alt-fill"></i></div><div><h3>ESPACIO TIEMPO</h3><p>Pantalla 02 · Variables restauradas según la matriz del cliente.</p></div></div>
+        <div class="module-body"><div class="event-grid">
+          <div class="field-span-3 d-none" id="centralCodeWrap"><label class="form-label">Código central que reporta</label><input name="central_code" id="central_code" class="form-control"></div>
+          <div class="field-span-3 d-none" id="centralNameWrap"><label class="form-label">Central que reporta</label><input id="central_name" class="form-control" readonly></div>
+
+          <div class="field-span-3"><label class="form-label">Código tienda</label><select name="store_code" id="store_code" class="form-select">{% for s in stores %}<option value="{{ s.store_code }}">{{ s.store_code }} - {{ s.store_name }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Nombre de la tienda</label><input id="store_name_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Formato</label><input id="format_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Provincia</label><input id="province_view" class="form-control" readonly></div>
+
+          <div class="field-span-3"><label class="form-label">Cantón</label><input id="canton_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Región</label><input id="region_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Distrito</label><input id="district_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Zona</label><input id="zone_view" class="form-control" readonly></div>
+
+          <div class="field-span-3"><label class="form-label">Latitud</label><input id="lat_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Longitud X</label><input id="lng_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Subzona PN</label><input id="subzone_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Distrito PN</label><input id="police_district_view" class="form-control" readonly></div>
+
+          <div class="field-span-3"><label class="form-label">Circuito PN</label><input id="circuit_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Subcircuito PN</label><input id="subcircuit_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Código subcircuito</label><input id="subcircuit_code_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Afectación local</label><select name="affectation" class="form-select">{% for v in affectations %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+
+          <div class="field-span-3"><label class="form-label">Ubicación novedad</label><select name="novelty_location" class="form-select">{% for v in novelty_locations %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Empresa / lugar</label><select name="place_company" class="form-select">{% for v in places %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Subtipo lugar</label><select name="place_subtype" class="form-select">{% for v in place_subtypes %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Fecha evento</label><input name="event_date" type="date" class="form-control"></div>
+
+          <div class="field-span-3"><label class="form-label">Hora del evento</label><input name="event_time" type="time" class="form-control"></div>
+          <div class="field-span-3"><label class="form-label">Estado alerta</label><select name="alert_state" id="alert_state" class="form-select">{% for v in alert_states %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-6 d-none" id="discardedWrap"><label class="form-label">Razón alerta descartada</label><select name="discarded_reason" class="form-select"><option value=""></option>{% for v in discarded_reasons %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+        </div></div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-novedad">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-journal-richtext"></i></div><div><h3>NOVEDAD</h3><p>Pantalla 03</p></div></div>
+        <div class="module-body"><div class="event-grid">
+          <div class="field-span-3"><label class="form-label">Tipo de novedad</label><select name="novelty_type" id="novelty_type" class="form-select"><option value=""></option>{% for v in novelty_types %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Subtipo de novedad</label><select name="novelty_subtype" id="novelty_subtype" class="form-select"><option value=""></option></select></div>
+          <div class="field-span-3"><label class="form-label">Modalidad</label><select name="modality" id="modality" class="form-select"><option value=""></option></select></div>
+          <div class="field-span-3"><label class="form-label">Número de integrantes</label><input name="number_of_members" type="number" min="1" value="1" class="form-control"></div>
+          <div class="field-span-12"><label class="form-label">Detalle de la novedad</label><textarea name="detail" rows="5" class="form-control"></textarea></div>
+        </div></div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-victima">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-people-fill"></i></div><div><h3>VÍCTIMA</h3><p>Pantalla 04</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existen víctimas?</label><select id="has_victims" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si es <strong>SI</strong>, se despliegan los campos. Si es <strong>NO</strong>, continúas.</div></div>
+          </div>
+          <div id="victimSection"><div class="d-flex justify-content-between align-items-center mb-3"><button type="button" class="btn btn-outline-light" onclick="addVictim()"><i class="bi bi-plus-circle me-1"></i>Agregar víctima</button></div><div id="victimsContainer"></div></div>
+        </div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-perfiles">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-person-bounding-box"></i></div><div><h3>PERFILES</h3><p>Pantalla 05</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existen personas sospechosas?</label><select id="has_suspects" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si es <strong>SI</strong>, se despliegan perfiles. Si es <strong>NO</strong>, continúa a vehículos.</div></div>
+          </div>
+          <div id="suspectSection"><div class="d-flex justify-content-between align-items-center mb-3"><button type="button" class="btn btn-outline-light" onclick="addSuspect()"><i class="bi bi-plus-circle me-1"></i>Agregar perfil</button></div><div id="suspectsContainer"></div></div>
+          <div class="event-grid mt-4 mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existen vehículos?</label><select id="has_vehicles" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si es <strong>SI</strong>, se despliegan los campos de vehículos. Si es <strong>NO</strong>, continúa.</div></div>
+          </div>
+          <div id="vehicleSection"><div class="d-flex justify-content-between align-items-center mb-3"><button type="button" class="btn btn-outline-light" onclick="addVehicle()"><i class="bi bi-plus-circle me-1"></i>Agregar vehículo</button></div><div id="vehiclesContainer"></div></div>
+        </div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-mercaderia">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-cart-fill"></i></div><div><h3>MERCADERÍA</h3><p>Pantalla 06 · Variables alineadas al requerimiento.</p></div></div>
+        <div class="module-body"><div class="d-flex justify-content-between align-items-center mb-3"><button type="button" class="btn btn-outline-light" onclick="addMerch()"><i class="bi bi-plus-circle me-1"></i>Agregar producto</button></div><div id="merchContainer"></div></div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-fotografias">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-camera-fill"></i></div><div><h3>FOTOGRAFÍAS</h3><p>Pantalla 07</p></div></div>
+        <div class="module-body"><div class="photo-grid">{% for i in range(1,21) %}<div class="photo-slot"><div class="fw-bold mb-2">Evidencia {{ i }}</div><input type="file" name="gallery_{{i}}" accept="image/*" class="form-control mb-2 photo-file"><textarea class="form-control photo-note" rows="2" placeholder="Resumen descriptivo de la evidencia {{i}}"></textarea></div>{% endfor %}</div></div>
+      </section>
+
+      
+<section class="module-card wizard-step" id="step-delegacion">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-bank2"></i></div><div><h3>MONITOREO DEL PROCESO PENAL</h3><p>Pantalla 08 · Investigación o flagrancia con condicionales.</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existe delegación o denuncia?</label><select id="has_penal_process" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-4"><label class="form-label">Proceso penal</label><select id="penal_process_type" class="form-select"><option value="INVESTIGACION">Investigación</option><option value="FLAGRANCIA">Flagrancia</option></select></div>
+            <div class="field-span-4"><label class="form-label" id="penal_aux_label">¿Existe delegación?</label><select id="penal_aux_exists" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+          </div>
+          <div id="penalSection">
+            <div id="investigacionFields">
+              <div class="event-grid">
+                <div class="field-span-4"><label class="form-label">No. oficio delegación</label><input name="delegation" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">PDF delegación</label><input type="file" name="denuncia_pdf" accept="application/pdf" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fecha oficio delegación</label><input type="date" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Tipo delito a investigar</label><select class="form-select" id="investigation_crime"><option>Robo</option><option>Estafa</option><option>Extorsión</option><option>Secuestro</option><option>Hurto</option><option>Homicidio</option><option>Asesinato</option><option>Asociación ilícita</option><option>Delincuencia organizada</option></select></div>
+                <div class="field-span-4"><label class="form-label">No. noticia del delito / denuncia</label><input name="complaint_number" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">PDF denuncia</label><input type="file" name="diligencias_pdf" accept="application/pdf" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fecha denuncia</label><input name="complaint_date" type="date" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fiscalía o unidad judicial</label><input name="prosecutor_office" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fiscal que lleva el caso</label><input name="prosecutor_name" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Abogado patrocinador</label><input class="form-control"></div>
+                <div class="field-span-6"><label class="form-label">Solicitud de diligencias y actuaciones</label><textarea name="proceedings" rows="3" class="form-control"></textarea></div>
+                <div class="field-span-3"><label class="form-label">Fecha de diligencia</label><input type="date" class="form-control"></div>
+                <div class="field-span-3"><label class="form-label">PDF diligencia</label><input type="file" accept="application/pdf" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Estado de la diligencia</label><select class="form-select"><option>Atendido</option><option>Pendiente</option><option>No acogido</option></select></div>
+              </div>
+            </div>
+            <div id="flagranciaFields" class="d-none">
+              <div class="event-grid">
+                <div class="field-span-4"><label class="form-label">No. del parte policial</label><input class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">PDF parte</label><input type="file" accept="application/pdf" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">No. noticia del delito / denuncia</label><input class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">PDF denuncia</label><input type="file" accept="application/pdf" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fecha noticia del delito / denuncia</label><input type="date" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fiscalía o unidad judicial</label><input class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fiscal que lleva el caso</label><input class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Abogado patrocinador</label><input class="form-control"></div>
+                <div class="field-span-6"><label class="form-label">Solicitud de diligencias y actuaciones</label><textarea rows="3" class="form-control"></textarea></div>
+                <div class="field-span-3"><label class="form-label">Fecha de diligencia</label><input type="date" class="form-control"></div>
+                <div class="field-span-3"><label class="form-label">PDF diligencia</label><input type="file" accept="application/pdf" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Estado de la diligencia</label><select class="form-select"><option>Atendido</option><option>Pendiente</option><option>No acogido</option></select></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+<section class="module-card wizard-step" id="step-procesados">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-diagram-2-fill"></i></div><div><h3>PROCESADOS</h3><p>Pantalla 09 · Variables completas del requerimiento.</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existen procesados?</label><select id="has_processed" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si responde <strong>NO</strong>, no se despliegan las variables de procesados.</div></div>
+          </div>
+          <div id="processedSection">
+            <div class="d-flex justify-content-between align-items-center mt-2 mb-3"><button type="button" class="btn btn-outline-light" onclick="addProcessed()"><i class="bi bi-plus-circle me-1"></i>Agregar procesado</button></div>
+            <div id="processedContainer"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="wizard-footer">
+        <button type="button" class="btn btn-outline-light px-4" id="prevStepBtn"><i class="bi bi-arrow-left me-2"></i>Anterior</button>
+        <div class="wizard-progress-text" id="wizardProgressText">Pantalla 1 de 9</div>
+        <button type="button" class="btn btn-primary px-4" id="nextStepBtn">Siguiente<i class="bi bi-arrow-right ms-2"></i></button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+const productTypes = {{ product_types|tojson }};
+const noveltyMatrix = {{ novelty_matrix|tojson }};
+const nationalities = ['Ecuador','Colombia','Perú','Venezuela','México','Brasil','Chile'];
+const suspectStatusOptions = ['Aprehendido','No aprehendido','Procesado'];
+const antecedentesOptions = ['Reincidente','Sospechoso no reconocido'];
+const tiposOrganizacion = ['Delincuencia común','Delincuencia organizada','Delincuente habitual','No aplica'];
+const orgNames = ['Águilas','AguilasKiller','Ak47','Caballeros Oscuros','ChoneKiller','Choneros','Corvicheros','Cubanos','Fatales','Lagartos','Latin Kings','Lobos','Los Tiburones','Patrones','R7','Tiguerones','No reconocida'];
+const stepIds = ['step-alerta','step-espacio-tiempo','step-novedad','step-victima','step-perfiles','step-mercaderia','step-fotografias','step-delegacion','step-procesados'];
+let currentStep = 0;
+
+function esc(v){ return String(v || '').replaceAll('"','&quot;'); }
+function optionList(list, selected=''){ return list.map(v => `<option value="${esc(v)}" ${v===selected?'selected':''}>${v}</option>`).join(''); }
+function removableHeader(title, cls){ return `<div class="object-row-header"><div class="object-row-title">${title}</div><button type="button" class="object-remove" onclick="this.closest('.${cls}').remove()">Eliminar</button></div>`; }
+function showWizardError(msg){ const el=document.getElementById('wizardError'); el.textContent=msg; el.classList.remove('d-none'); el.scrollIntoView({behavior:'smooth', block:'center'}); }
+function hideWizardError(){ document.getElementById('wizardError').classList.add('d-none'); }
+function clearInvalids(){ document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid')); }
+function validateFilled(elements, msg){
+  for(const el of elements){
+    if(el.offsetParent===null || el.disabled || el.type==='hidden' || el.type==='file') continue;
+    if(!(el.value || '').trim()){
+      el.classList.add('is-invalid');
+      showWizardError(msg);
+      el.focus();
+      return false;
+    }
+  }
+  return true;
+}
+
+// ---------------- ALERTA ----------------
+function toggleAlarm(){
+  const select = document.getElementById('alarm_activated');
+  const block = document.getElementById('alarmBlock');
+  if(!select || !block) return;
+  const yes = select.value === 'SI';
+  if(yes){
+    block.classList.remove('d-none');
+    block.style.display = 'block';
+    block.hidden = false;
+  } else {
+    block.classList.add('d-none');
+    block.style.display = 'none';
+    block.hidden = true;
+  }
+}
+function toggleProcessRules(){
+  const process = ((document.getElementById('process') || {}).value || '').toUpperCase();
+  const showCentral = process === 'HURTO';
+  document.getElementById('centralCodeWrap')?.classList.toggle('d-none', !showCentral);
+  document.getElementById('centralNameWrap')?.classList.toggle('d-none', !showCentral);
+}
+
+// --------------- ESPACIO TIEMPO ---------------
+function toggleDiscarded(){
+  const state = document.getElementById('alert_state');
+  const wrap = document.getElementById('discardedWrap');
+  if(state && wrap) wrap.classList.toggle('d-none', state.value !== 'Descartado');
+}
+function fillStore(code){
+  fetch(`/api/stores/${code}`)
+    .then(r => r.json())
+    .then(data => {
+      if(data.error) return;
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if(el) el.value = val || '';
+      };
+      setVal('central_code', data.central_code);
+      setVal('central_name', data.central_name);
+      setVal('store_name_view', data.store_name);
+      setVal('format_view', data.format);
+      setVal('province_view', data.province);
+      setVal('canton_view', data.canton);
+      setVal('region_view', data.region);
+      setVal('district_view', data.district);
+      setVal('zone_view', data.zone);
+      setVal('lat_view', data.lat);
+      setVal('lng_view', data.lng);
+      setVal('subzone_view', data.subzone);
+      setVal('police_district_view', data.police_district);
+      setVal('circuit_view', data.circuit);
+      setVal('subcircuit_view', data.subcircuit);
+      setVal('subcircuit_code_view', data.subcircuit_code);
+    })
+    .catch(err => console.error('Error cargando tienda:', err));
+}
+
+// --------------- NOVEDAD ---------------
+function loadSubtypeOptions(){
+  const type = document.getElementById('novelty_type')?.value;
+  const subtype = document.getElementById('novelty_subtype');
+  const modality = document.getElementById('modality');
+  if(!subtype || !modality) return;
+  subtype.innerHTML = '<option value=""></option>';
+  modality.innerHTML = '<option value=""></option>';
+  if(!type || !noveltyMatrix[type]) return;
+  subtype.innerHTML += Object.keys(noveltyMatrix[type]).map(v => `<option value="${esc(v)}">${v}</option>`).join('');
+}
+function loadModalityOptions(){
+  const type = document.getElementById('novelty_type')?.value;
+  const sub = document.getElementById('novelty_subtype')?.value;
+  const modality = document.getElementById('modality');
+  if(!modality) return;
+  modality.innerHTML = '<option value=""></option>';
+  if(!type || !sub || !noveltyMatrix[type] || !noveltyMatrix[type][sub]) return;
+  modality.innerHTML += noveltyMatrix[type][sub].map(v => `<option value="${esc(v)}">${v}</option>`).join('');
+}
+
+// --------------- DYNAMIC SECTIONS ---------------
+function toggleVictims(){ document.getElementById('victimSection')?.classList.toggle('d-none', document.getElementById('has_victims')?.value !== 'SI'); }
+function toggleSuspects(){ document.getElementById('suspectSection')?.classList.toggle('d-none', document.getElementById('has_suspects')?.value !== 'SI'); }
+function toggleVehicles(){ document.getElementById('vehicleSection')?.classList.toggle('d-none', document.getElementById('has_vehicles')?.value !== 'SI'); }
+function toggleProcessed(){ document.getElementById('processedSection')?.classList.toggle('d-none', document.getElementById('has_processed')?.value !== 'SI'); }
+function togglePenal(){
+  const exists = document.getElementById('has_penal_process')?.value === 'SI';
+  document.getElementById('penalSection')?.classList.toggle('d-none', !exists);
+  const type = document.getElementById('penal_process_type')?.value;
+  const auxLabel = document.getElementById('penal_aux_label');
+  if(auxLabel) auxLabel.textContent = type === 'INVESTIGACION' ? '¿Existe delegación?' : '¿Existe denuncia?';
+  const auxExists = document.getElementById('penal_aux_exists')?.value === 'SI';
+  document.getElementById('investigacionFields')?.classList.toggle('d-none', !(exists && auxExists && type === 'INVESTIGACION'));
+  document.getElementById('flagranciaFields')?.classList.toggle('d-none', !(exists && auxExists && type === 'FLAGRANCIA'));
+}
+
+// --------------- REPEATABLE SECTIONS ---------------
+function addVictim(data={cedula:'',nombres:'',cargo:'',edad:'',sexo:'',tipo_lesion:'',observacion:''}){
+  const idx=document.querySelectorAll('.victim-row').length+1;
+  document.getElementById('victimsContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row victim-row">${removableHeader('Víctima #'+idx,'victim-row')}
+      <div class="event-grid">
+        <div class="field-span-3"><label class="form-label">Cédula</label><input class="form-control victim-cedula" value="${esc(data.cedula)}"></div>
+        <div class="field-span-5"><label class="form-label">Nombres completos</label><input class="form-control victim-nombres" value="${esc(data.nombres)}"></div>
+        <div class="field-span-4"><label class="form-label">Cargo</label><input class="form-control victim-cargo" value="${esc(data.cargo)}"></div>
+        <div class="field-span-2"><label class="form-label">Edad</label><input class="form-control victim-edad" value="${esc(data.edad)}"></div>
+        <div class="field-span-3"><label class="form-label">Sexo</label><select class="form-select victim-sexo"><option>Hombre</option><option>Mujer</option></select></div>
+        <div class="field-span-7"><label class="form-label">Tipo de lesión</label><input class="form-control victim-tipo-lesion" value="${esc(data.tipo_lesion)}"></div>
+        <div class="field-span-12"><label class="form-label">Observación</label><textarea class="form-control victim-observacion" rows="2">${esc(data.observacion)}</textarea></div>
+      </div>
+    </div>`);
+}
+function addSuspect(){
+  const idx=document.querySelectorAll('.suspect-row').length+1;
+  document.getElementById('suspectsContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row suspect-row">${removableHeader('Perfil #'+idx,'suspect-row')}
+      <div class="event-grid">
+        <div class="field-span-4"><label class="form-label">Nombre</label><input class="form-control suspect-nombre"></div>
+        <div class="field-span-2"><label class="form-label">Sexo</label><select class="form-select suspect-sexo"><option>Hombre</option><option>Mujer</option></select></div>
+        <div class="field-span-2"><label class="form-label">Edad aproximada</label><input class="form-control suspect-edad"></div>
+        <div class="field-span-4"><label class="form-label">Nacionalidad</label><select class="form-select suspect-nacionalidad">${optionList(nationalities)}</select></div>
+        <div class="field-span-4"><label class="form-label">Situación del sospechoso</label><select class="form-select suspect-situacion">${optionList(suspectStatusOptions)}</select></div>
+        <div class="field-span-4"><label class="form-label">Antecedentes operacionales</label><select class="form-select suspect-antecedentes">${optionList(antecedentesOptions)}</select></div>
+        <div class="field-span-4"><label class="form-label">Tipo de organización</label><select class="form-select suspect-tipo-org">${optionList(tiposOrganizacion)}</select></div>
+        <div class="field-span-4"><label class="form-label">Nombre de la organización</label><select class="form-select suspect-org-name">${optionList(orgNames)}</select></div>
+        <div class="field-span-8"><label class="form-label">Actividad sospechosa</label><input class="form-control suspect-actividad"></div>
+      </div>
+    </div>`);
+}
+function addVehicle(){
+  const idx=document.querySelectorAll('.vehicle-row').length+1;
+  document.getElementById('vehiclesContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row vehicle-row">${removableHeader('Vehículo #'+idx,'vehicle-row')}
+      <div class="event-grid">
+        <div class="field-span-3"><label class="form-label">Tipo de vehículo</label><input class="form-control vehicle-tipo"></div>
+        <div class="field-span-3"><label class="form-label">Marca</label><input class="form-control vehicle-marca"></div>
+        <div class="field-span-3"><label class="form-label">Placas</label><input class="form-control vehicle-placas"></div>
+        <div class="field-span-3"><label class="form-label">Color</label><input class="form-control vehicle-color"></div>
+        <div class="field-span-4"><label class="form-label">Características particulares</label><input class="form-control vehicle-caracteristicas"></div>
+        <div class="field-span-2"><label class="form-label">Número de pasajeros</label><input class="form-control vehicle-pasajeros"></div>
+        <div class="field-span-6"><label class="form-label">Actividad sospechosa</label><input class="form-control vehicle-actividades"></div>
+      </div>
+    </div>`);
+}
+function addMerch(data={tipo_producto:'Mercadería',nombre_producto:'',cantidad:'1',estadistico:'',valor:''}){
+  const idx=document.querySelectorAll('.merch-row').length+1;
+  document.getElementById('merchContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row merch-row">${removableHeader('Producto #'+idx,'merch-row')}
+      <div class="event-grid">
+        <div class="field-span-4"><label class="form-label">Tipo de producto</label><select class="form-select merch-producto">${optionList(productTypes,data.tipo_producto)}</select></div>
+        <div class="field-span-4"><label class="form-label">Nombre del producto</label><input class="form-control merch-nombre" value="${esc(data.nombre_producto)}"></div>
+        <div class="field-span-2"><label class="form-label">Cantidad</label><input class="form-control merch-cantidad" value="${esc(data.cantidad)}"></div>
+        <div class="field-span-1"><label class="form-label">Estadístico</label><input class="form-control merch-estadistico" value="${esc(data.estadistico)}"></div>
+        <div class="field-span-1"><label class="form-label">Valor</label><input class="form-control merch-valor" value="${esc(data.valor)}"></div>
+      </div>
+    </div>`);
+}
+function addProcessed(){
+  const idx=document.querySelectorAll('.processed-row').length+1;
+  document.getElementById('processedContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row processed-row">${removableHeader('Procesado #'+idx,'processed-row')}
+      <div class="event-grid">
+        <div class="field-span-3"><label class="form-label">Cédula</label><input class="form-control processed-cedula"></div>
+        <div class="field-span-5"><label class="form-label">Nombres y apellidos</label><input class="form-control processed-nombres"></div>
+        <div class="field-span-2"><label class="form-label">Sexo</label><select class="form-select processed-sexo"><option>Hombre</option><option>Mujer</option></select></div>
+        <div class="field-span-2"><label class="form-label">Edad</label><input class="form-control processed-edad"></div>
+      </div>
+    </div>`);
+}
+
+// --------------- VALIDATION / NAV ---------------
+function validateStep(idx){
+  clearInvalids();
+  hideWizardError();
+  if(idx===0){
+    if(!validateFilled(document.querySelectorAll('.step1-core'), 'Complete generación de alerta, proceso y actividad operativa antes de continuar.')) return false;
+    if(document.getElementById('alarm_activated').value === 'NO') return true;
+    return validateFilled(document.querySelectorAll('.step1-conditional'), 'Complete las variables operativas de ALERTA antes de continuar.');
+  }
+  if(idx===1) return validateFilled(document.querySelectorAll('#step-espacio-tiempo input, #step-espacio-tiempo select'), 'Complete ESPACIO TIEMPO antes de continuar.');
+  if(idx===2) return validateFilled(document.querySelectorAll('#step-novedad input, #step-novedad select, #step-novedad textarea'), 'Complete NOVEDAD antes de continuar.');
+  return true;
+}
+function goToStep(idx, force=false){
+  if(idx<0 || idx>=stepIds.length) return;
+  if(!force && idx>currentStep && !validateStep(currentStep)) return;
+  currentStep = idx;
+  document.querySelectorAll('.wizard-step').forEach((s,i)=> s.classList.toggle('active', i===idx));
+  document.querySelectorAll('.wizard-btn').forEach((b,i)=>{
+    b.classList.toggle('active', i===idx);
+    b.classList.toggle('done', i<idx);
+  });
+  document.getElementById('prevStepBtn').disabled = idx===0;
+  document.getElementById('wizardProgressText').textContent = `Pantalla ${idx+1} de ${stepIds.length}`;
+  document.getElementById('nextStepBtn').innerHTML = idx===stepIds.length-1 ? 'Validar y guardar <i class="bi bi-check2-circle ms-2"></i>' : 'Siguiente<i class="bi bi-arrow-right ms-2"></i>';
+}
+function serializeObjects(){
+  const victims = [...document.querySelectorAll('.victim-row')].map(r=>({
+    cedula:r.querySelector('.victim-cedula')?.value || '',
+    nombres:r.querySelector('.victim-nombres')?.value || '',
+    cargo:r.querySelector('.victim-cargo')?.value || '',
+    edad:r.querySelector('.victim-edad')?.value || '',
+    sexo:r.querySelector('.victim-sexo')?.value || '',
+    tipo_lesion:r.querySelector('.victim-tipo-lesion')?.value || '',
+    observacion:r.querySelector('.victim-observacion')?.value || ''
+  })).filter(v => Object.values(v).some(Boolean));
+  document.getElementById('victims_json').value = JSON.stringify(victims);
+
+  const suspects = [...document.querySelectorAll('.suspect-row')].map(r=>({
+    nombre:r.querySelector('.suspect-nombre')?.value || '',
+    sexo:r.querySelector('.suspect-sexo')?.value || '',
+    edad_aprox:r.querySelector('.suspect-edad')?.value || '',
+    nacionalidad:r.querySelector('.suspect-nacionalidad')?.value || '',
+    situacion:r.querySelector('.suspect-situacion')?.value || '',
+    antecedentes:r.querySelector('.suspect-antecedentes')?.value || '',
+    tipo_organizacion:r.querySelector('.suspect-tipo-org')?.value || '',
+    organizacion_nombre:r.querySelector('.suspect-org-name')?.value || '',
+    actividad:r.querySelector('.suspect-actividad')?.value || ''
+  })).filter(v => Object.values(v).some(Boolean));
+  document.getElementById('suspects_json').value = JSON.stringify(suspects);
+
+  const vehicles = [...document.querySelectorAll('.vehicle-row')].map(r=>({
+    tipo_vehiculo:r.querySelector('.vehicle-tipo')?.value || '',
+    marca:r.querySelector('.vehicle-marca')?.value || '',
+    placas:r.querySelector('.vehicle-placas')?.value || '',
+    color:r.querySelector('.vehicle-color')?.value || '',
+    numero_pasajeros:r.querySelector('.vehicle-pasajeros')?.value || '',
+    caracteristicas:r.querySelector('.vehicle-caracteristicas')?.value || '',
+    actividades_sospechosas:r.querySelector('.vehicle-actividades')?.value || ''
+  })).filter(v => Object.values(v).some(Boolean));
+  document.getElementById('vehicles_json').value = JSON.stringify(vehicles);
+
+  const merch = [...document.querySelectorAll('.merch-row')].map(r=>({
+    tipo_producto:r.querySelector('.merch-producto')?.value || '',
+    nombre_producto:r.querySelector('.merch-nombre')?.value || '',
+    cantidad:r.querySelector('.merch-cantidad')?.value || '',
+    estadistico:r.querySelector('.merch-estadistico')?.value || '',
+    valor:r.querySelector('.merch-valor')?.value || ''
+  })).filter(v => Object.values(v).some(Boolean));
+  document.getElementById('merchandise_json').value = JSON.stringify(merch);
+
+  document.getElementById('photo_notes_json').value = JSON.stringify(
+    [...document.querySelectorAll('.photo-note')].map(x => x.value).filter(Boolean)
+  );
+  document.getElementById('processed_json').value = JSON.stringify([]);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  addVictim();
+  addSuspect();
+  addVehicle();
+  addMerch();
+  addProcessed();
+
+  document.getElementById('alarm_activated')?.addEventListener('change', toggleAlarm);
+  document.getElementById('process')?.addEventListener('change', toggleProcessRules);
+  document.getElementById('alert_state')?.addEventListener('change', toggleDiscarded);
+  document.getElementById('has_victims')?.addEventListener('change', toggleVictims);
+  document.getElementById('has_suspects')?.addEventListener('change', toggleSuspects);
+  document.getElementById('has_vehicles')?.addEventListener('change', toggleVehicles);
+  document.getElementById('has_processed')?.addEventListener('change', toggleProcessed);
+  document.getElementById('has_penal_process')?.addEventListener('change', togglePenal);
+  document.getElementById('penal_process_type')?.addEventListener('change', togglePenal);
+  document.getElementById('penal_aux_exists')?.addEventListener('change', togglePenal);
+  document.getElementById('store_code')?.addEventListener('change', e => fillStore(e.target.value));
+  document.getElementById('novelty_type')?.addEventListener('change', () => { loadSubtypeOptions(); loadModalityOptions(); });
+  document.getElementById('novelty_subtype')?.addEventListener('change', loadModalityOptions);
+
+  document.querySelectorAll('.wizard-btn').forEach((b,i)=> b.addEventListener('click', ()=>{ if(i<=currentStep) goToStep(i,true); }));
+  document.getElementById('prevStepBtn')?.addEventListener('click', ()=> goToStep(currentStep-1,true));
+  document.getElementById('nextStepBtn')?.addEventListener('click', ()=>{
+    if(currentStep === stepIds.length-1){
+      if(validateStep(currentStep)){
+        serializeObjects();
+        document.getElementById('trackerForm').requestSubmit();
+      }
+    } else {
+      goToStep(currentStep+1,false);
+    }
+  });
+  document.getElementById('trackerForm')?.addEventListener('submit', e=>{
+    serializeObjects();
+    for(let i=0;i<stepIds.length;i++){
+      if(!validateStep(i)){
+        e.preventDefault();
+        goToStep(i,true);
+        return false;
+      }
+    }
+  });
+
+  fillStore(document.getElementById('store_code')?.value || '');
+  toggleAlarm();
+  toggleProcessRules();
+  toggleDiscarded();
+  toggleVictims();
+  toggleSuspects();
+  toggleVehicles();
+  toggleProcessed();
+  togglePenal();
+  goToStep(0,true);
+});
+</script>
+{% endblock %}

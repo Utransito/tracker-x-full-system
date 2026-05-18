@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="dashboard-hero mb-4">
+  <div>
+    <span class="hero-chip"><i class="bi bi-broadcast-pin me-2"></i>TRACKER · Centro de control</span>
+    <h1 class="display-5 fw-bold mt-3 mb-2">Dashboard operativo</h1>
+    <p class="mb-0">Visual ejecutivo del sistema con una presentación más potente, más comercial y más agradable para enseñar al cliente final.</p>
+    <div class="hero-actions mt-4">
+      <a href="/cases/new" class="btn btn-light btn-lg px-4 rounded-pill"><i class="bi bi-plus-circle me-2"></i>Nuevo caso</a>
+      <a href="/cases" class="btn btn-outline-light btn-lg px-4 rounded-pill">Ver historial</a>
+    </div>
+  </div>
+  <div class="hero-orb-grid">
+    <div class="hero-orb-card big">
+      <span>Total casos</span>
+      <strong>{{ case_count }}</strong>
+      <small>Registros acumulados en la plataforma</small>
+    </div>
+    <div class="hero-orb-card"><span>Confirmados</span><strong>{{ confirmed_count }}</strong><small>Alertas validadas</small></div>
+    <div class="hero-orb-card"><span>Tiendas</span><strong>{{ stores_count }}</strong><small>Cobertura territorial</small></div>
+    <div class="hero-orb-card"><span>Roles</span><strong>4</strong><small>Usuarios operativos</small></div>
+  </div>
+</div>
+
+<div class="dashboard-grid mb-4">
+  <section class="ops-panel">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <div class="section-overline">Comando central</div>
+        <h3 class="mb-1">Centro de comando geoespacial</h3>
+        <p class="text-muted mb-0">Vista ejecutiva de cobertura, operación y trazabilidad del flujo.</p>
+      </div>
+      <span class="chip"><i class="bi bi-diagram-3 me-1"></i>Flujo de 9 pantallas</span>
+    </div>
+    <div class="command-visual">
+      <div class="command-node n1"><i class="bi bi-geo-alt-fill me-1"></i>GUAYAQUIL</div>
+      <div class="command-node n2"><i class="bi bi-geo-alt-fill me-1"></i>QUITO</div>
+      <div class="command-node n3"><i class="bi bi-geo-alt-fill me-1"></i>MILAGRO</div>
+
+      <div class="command-kpis">
+        <div class="command-kpi"><span>Eventos</span><strong>{{ case_count }}</strong></div>
+        <div class="command-kpi"><span>Cobertura</span><strong>{{ stores_count }}</strong></div>
+        <div class="command-kpi"><span>Confirmados</span><strong>{{ confirmed_count }}</strong></div>
+        <div class="command-kpi"><span>Flujo</span><strong>Activo</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="activity-panel">
+    <div class="section-overline">Monitoreo</div>
+    <h3 class="mb-3">Actividad reciente</h3>
+    <div class="vstack gap-3">
+      {% for c in recent_cases %}
+      <a href="/cases/{{ c.id }}" class="timeline-item text-decoration-none">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="small text-muted">{{ c.case_number }}</div>
+          <div class="fw-bold">{{ c.store_name }}</div>
+          <div class="small text-muted">{{ c.novelty_type or 'Sin tipificación' }} · {{ c.alert_state or 'En proceso' }}</div>
+        </div>
+      </a>
+      {% else %}
+      <div class="empty-box">No existen casos aún.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-8">
+    <div class="glass-card p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <div class="section-overline">Acceso rápido</div>
+          <h3 class="mb-1">Módulos clave del sistema</h3>
+        </div>
+        <span class="text-muted small">Versión visual reforzada</span>
+      </div>
+      <div class="module-shortcuts-grid">
+        <a href="/cases/new" class="module-shortcut-card"><i class="bi bi-alarm-fill"></i><span>ALERTA</span><small>Pantalla 01</small></a>
+        <a href="/cases/new#espacio-tiempo" class="module-shortcut-card"><i class="bi bi-geo-alt-fill"></i><span>ESPACIO TIEMPO</span><small>Pantalla 02</small></a>
+        <a href="/cases/new#novedad" class="module-shortcut-card"><i class="bi bi-journal-richtext"></i><span>NOVEDAD</span><small>Pantalla 03</small></a>
+        <a href="/cases/new#victimas" class="module-shortcut-card"><i class="bi bi-people-fill"></i><span>VÍCTIMA</span><small>Pantalla 04</small></a>
+        <a href="/cases/new#perfiles" class="module-shortcut-card"><i class="bi bi-person-bounding-box"></i><span>PERFILES</span><small>Pantalla 05</small></a>
+        <a href="/cases/new#bienes" class="module-shortcut-card"><i class="bi bi-cart-fill"></i><span>MERCADERÍA</span><small>Pantalla 06</small></a>
+        <a href="/cases/new#evidencia" class="module-shortcut-card"><i class="bi bi-camera-fill"></i><span>FOTOGRAFÍAS</span><small>Pantalla 07</small></a>
+        <a href="/cases/new#seguimiento" class="module-shortcut-card"><i class="bi bi-bank2"></i><span>DELEGACIÓN</span><small>Pantalla 08</small></a>
+        <a href="/cases/new#anexos" class="module-shortcut-card"><i class="bi bi-diagram-2-fill"></i><span>PROCESADOS</span><small>Pantalla 09</small></a>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="glass-card p-4 h-100 status-panel">
+      <div class="section-overline">Estado general</div>
+      <h3 class="mb-3">Pulso operativo</h3>
+      <div class="status-pill success"><i class="bi bi-check2-circle"></i><span>Sistema operativo</span></div>
+      <div class="status-pill info"><i class="bi bi-shield-check"></i><span>Estructura del flujo activa</span></div>
+      <div class="status-pill warn"><i class="bi bi-stars"></i><span>Interfaz reforzada visualmente</span></div>
+      <div class="rule-box mt-3 mb-0">Este panel fue rediseñado para verse más llamativo, más limpio y con una presencia más sólida para presentación al cliente.</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

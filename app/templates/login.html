@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-100">
+  <div class="col-xl-10">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-7">
+        <div class="hero-box">
+          <span class="chip mb-3">TRACKER X · Sistema Integrado de Seguridad Empresarial</span>
+          <h1 class="display-5 fw-bold mt-3">Flujo real del cliente: Pantalla 01 a Pantalla 09</h1>
+          <p class="text-muted mt-3">Versión alineada a la lógica condicional del documento: alerta, georreferenciación, novedad, víctimas, perfiles, mercadería, álbum fotográfico, seguimiento y situación legal.</p>
+          <div class="row g-3 mt-2">
+            <div class="col-md-4"><div class="mini-stat"><i class="bi bi-diagram-3"></i><strong>9 pantallas</strong><span>flujo secuencial</span></div></div>
+            <div class="col-md-4"><div class="mini-stat"><i class="bi bi-geo-alt"></i><strong>Geo TIAs</strong><span>autocompletado</span></div></div>
+            <div class="col-md-4"><div class="mini-stat"><i class="bi bi-file-earmark-pdf"></i><strong>PDF</strong><span>salida institucional</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card glass-card border-0"><div class="card-body p-4 p-lg-5">
+          <h3 class="fw-bold mb-4">Ingresar</h3>
+          {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+          <form method="post" action="/login" class="vstack gap-3">
+            <div><label class="form-label">Usuario</label><input class="form-control form-control-lg" name="username" value="admin"></div>
+            <div><label class="form-label">Contraseña</label><input class="form-control form-control-lg" name="password" type="password" value="admin123"></div>
+            <button class="btn btn-primary btn-lg rounded-pill mt-2">Entrar al sistema</button>
+          </form>
+          <div class="mt-4 small text-muted">
+            Admin: <strong>admin / admin123</strong><br>
+            Central: <strong>central / 123456</strong><br>
+            Hurtos: <strong>hurtos / 123456</strong><br>
+            Delitos: <strong>delitos / 123456</strong>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
