@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="fw-bold mb-1">Caso {{ case.case_number }}</h1>
+    <p class="text-muted mb-0">{{ case.store_name }} · {{ case.process or 'SIN PROCESO' }} · generado por {{ case.creator.full_name if case.creator else 'sistema' }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/reports/{{ case.id }}/preinforme/preview" class="btn btn-primary rounded-pill case-action-wide px-4"><i class="bi bi-file-earmark-pdf me-2"></i>Generar preinforme</a>
+    {% if user.role == "admin" %}<a href="/cases/{{ case.id }}/edit" class="btn btn-outline-light rounded-pill px-4"><i class="bi bi-pencil-square me-2"></i>Editar</a>{% endif %}
+    <a href="/cases" class="btn btn-outline-light rounded-pill px-4">Volver</a>
+  </div>
+</div>
+
+<div class="tracker-page">
+  <div class="tracker-layout">
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-calendar-event"></i></div><div><h3>Evento</h3><p>Encabezado general</p></div></div>
+      <div class="module-body"><div class="detail-grid">
+        <div><span>Unidad policial</span><strong>{{ case.police_unit }}</strong></div>
+        <div><span>Solicitado por</span><strong>{{ case.requested_by }}</strong></div>
+        <div><span>Fecha / hora</span><strong>{{ case.event_date }} {{ case.event_time }}</strong></div>
+      </div></div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-alarm-fill"></i></div><div><h3>Alerta</h3><p>Pantalla 01</p></div></div>
+      <div class="module-body"><div class="detail-grid">
+        <div><span>Activación de alarma</span><strong>{{ case.alarm_activated }}</strong></div>
+        <div><span>Proceso</span><strong>{{ case.process }}</strong></div>
+        <div><span>Subproceso</span><strong>{{ case.sub_process }}</strong></div>
+        <div><span>Jefe del local</span><strong>{{ case.chief_name }}</strong></div>
+        <div><span>Hora activación</span><strong>{{ case.alert_time }}</strong></div>
+        <div><span>Empresa de seguridad</span><strong>{{ case.security_company }}</strong></div>
+        <div><span>Operador seguridad</span><strong>{{ case.security_operator }}</strong></div>
+        <div><span>Hora comunica al centro</span><strong>{{ case.center_operator_time }}</strong></div>
+        <div><span>Operador centro análisis</span><strong>{{ case.center_operator_name }}</strong></div>
+      </div></div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-geo-alt-fill"></i></div><div><h3>Espacio tiempo</h3><p>Pantalla 02</p></div></div>
+      <div class="module-body"><div class="detail-grid">
+        <div><span>Central monitoreo</span><strong>{{ case.central_code }} {{ case.central_name }}</strong></div>
+        <div><span>Tienda</span><strong>{{ case.store_code }} - {{ case.store_name }} ({{ case.format }})</strong></div>
+        <div><span>Región / Distrito / Zona</span><strong>{{ case.region }} / {{ case.district }} / {{ case.zone }}</strong></div>
+        <div><span>Provincia / Cantón / Parroquia</span><strong>{{ case.province }} / {{ case.canton }} / {{ case.parish }}</strong></div>
+        <div><span>Subzona / Distrito policía</span><strong>{{ case.subzone }} / {{ case.police_district }}</strong></div>
+        <div><span>Circuito / Subcircuito</span><strong>{{ case.circuit }} / {{ case.subcircuit }}</strong></div>
+        <div><span>Código subcircuito</span><strong>{{ case.subcircuit_code }}</strong></div>
+        <div><span>Coordenadas</span><strong>{{ case.lat }}, {{ case.lng }}</strong></div>
+        <div><span>Afectación / ubicación</span><strong>{{ case.affectation }} / {{ case.novelty_location }}</strong></div>
+        <div><span>Empresa / subtipo lugar</span><strong>{{ case.place_company }} / {{ case.place_subtype }}</strong></div>
+        <div><span>Estado alerta</span><strong>{{ case.alert_state }}</strong></div>
+        <div><span>Razón descarte</span><strong>{{ case.discarded_reason }}</strong></div>
+      </div></div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-journal-richtext"></i></div><div><h3>Novedad</h3><p>Pantalla 03</p></div></div>
+      <div class="module-body">
+        <div class="detail-grid mb-3">
+          <div><span>Tipo</span><strong>{{ case.novelty_type }}</strong></div>
+          <div><span>Subtipo</span><strong>{{ case.novelty_subtype }}</strong></div>
+          <div><span>Modalidad</span><strong>{{ case.modality }}</strong></div>
+          <div><span>Número integrantes</span><strong>{{ case.number_of_members }}</strong></div>
+        </div>
+        <div class="rule-box">{{ case.detail }}</div>
+      </div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-people-fill"></i></div><div><h3>Víctimas</h3><p>Pantalla 04</p></div></div>
+      <div class="module-body"><div class="vstack gap-3">
+        {% for v in victims %}
+        <div class="file-item">
+          <div class="fw-bold">{{ v.nombres }}</div>
+          <div class="small text-muted">{{ v.cedula }} · {{ v.cargo }} · {{ v.edad }} años · {{ v.sexo }}</div>
+          <div class="small text-muted">Tipo de lesión: {{ v.tipo_lesion }}</div>
+          <div class="mt-2">{{ v.observacion }}</div>
+        </div>
+        {% else %}<div class="empty-box">Sin víctimas registradas.</div>{% endfor %}
+      </div></div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-person-bounding-box"></i></div><div><h3>Perfiles</h3><p>Pantalla 05</p></div></div>
+      <div class="module-body"><div class="vstack gap-3">
+        {% for s in suspects %}
+        <div class="file-item">
+          <div class="fw-bold">{{ s.nombre or 'Sin nombre' }}{% if s.alias %} · Alias {{ s.alias }}{% endif %}</div>
+          <div class="small text-muted">{{ s.sexo }} · {{ s.edad_aprox }} · {{ s.nacionalidad }}</div>
+          <div class="small text-muted">{{ s.situacion }} · {{ s.antecedentes }} · {{ s.tipo_organizacion }} / {{ s.organizacion_nombre }}</div>
+          <div class="mt-2"><strong>Actividad:</strong> {{ s.actividad }}</div>
+          <div><strong>Descripción:</strong> {{ s.descripcion }}</div>
+          <div><strong>Vestimenta:</strong> {{ s.vestimenta }} | <strong>Señas:</strong> {{ s.senas }}</div>
+          <div><strong>Observación:</strong> {{ s.observacion }}</div>
+        </div>
+        {% else %}<div class="empty-box">Sin perfiles registrados.</div>{% endfor %}
+      </div></div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-box-seam-fill"></i></div><div><h3>Bienes sustraídos</h3><p>Pantalla 06</p></div></div>
+      <div class="module-body"><div class="vstack gap-3">
+        {% for m in merch %}
+        <div class="file-item">
+          <div class="fw-bold">{{ m.nombre_producto or m.producto or "Producto" }}</div>
+          <div class="small text-muted">Cantidad {{ m.cantidad or '' }} · Estadístico {{ m.estadistico or '' }}</div>
+          <div class="small text-muted">Valor {{ m.valor or '' }}</div>
+          <div class="mt-2">{{ m.observacion }}</div>
+        </div>
+        {% else %}<div class="empty-box">Sin bienes registrados.</div>{% endfor %}
+      </div></div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-camera-fill"></i></div><div><h3>Notas fotográficas</h3><p>Pantalla 07</p></div></div>
+      <div class="module-body"><div class="vstack gap-2">{% for note in photo_notes %}<div class="file-item">{{ note }}</div>{% else %}<div class="empty-box">Sin notas registradas.</div>{% endfor %}</div></div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-file-earmark-medical-fill"></i></div><div><h3>Seguimiento y situación legal</h3><p>Pantallas 08 y 09</p></div></div>
+      <div class="module-body">
+        <div class="detail-grid mb-3">
+          <div><span>Delegación</span><strong>{{ case.delegation }}</strong></div>
+          <div><span>Fiscalía</span><strong>{{ case.prosecutor_office }}</strong></div>
+          <div><span>Fiscal / responsable</span><strong>{{ case.prosecutor_name }}</strong></div>
+          <div><span>No. denuncia</span><strong>{{ case.complaint_number }}</strong></div>
+          <div><span>Fecha denuncia</span><strong>{{ case.complaint_date }}</strong></div>
+          <div><span>Unidad judicial</span><strong>{{ case.judicial_unit }}</strong></div>
+          <div><span>No. causa</span><strong>{{ case.cause_number }}</strong></div>
+          <div><span>Estado legal</span><strong>{{ case.legal_status }}</strong></div>
+          <div><span>Fecha audiencia</span><strong>{{ case.hearing_date }}</strong></div>
+          <div><span>Medida cautelar</span><strong>{{ case.precautionary_measure }}</strong></div>
+        </div>
+        <p><strong>Solicitud de diligencias y actuaciones:</strong> {{ proceedings_payload["summary"] if proceedings_payload and "summary" in proceedings_payload else "" }}</p>
+        <div class="vstack gap-2 mb-3">{% for item in proceedings_payload["items"] %}<div class="file-item"><div class="small text-muted">Fecha {{ item.fecha }} · Estado {{ item.estado }}</div><div class="fw-semibold">{{ item.documento or "Sin documento cargado" }}</div></div>{% else %}<div class="empty-box">Sin diligencias adicionales registradas.</div>{% endfor %}</div>
+        <p><strong>Resumen jurídico:</strong> {{ case.legal_summary }}</p>
+      </div>
+    </div>
+  </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-car-front-fill"></i></div><div><h3>Vehículos sospechosos</h3><p>Bloque adicional solicitado</p></div></div>
+      <div class="module-body"><div class="vstack gap-3">{% for v in vehicles %}<div class="file-item"><div class="fw-bold">{{ v.tipo_vehiculo }} · {{ v.marca }} · {{ v.placas }}</div><div class="small text-muted">Color {{ v.color }} · Pasajeros {{ v.numero_pasajeros }}</div><div><strong>Características:</strong> {{ v.caracteristicas }}</div><div><strong>Actividades sospechosas:</strong> {{ v.actividades_sospechosas }}</div></div>{% else %}<div class="empty-box">Sin vehículos registrados.</div>{% endfor %}</div></div>
+    </div>
+
+    <div class="module-card">
+      <div class="module-head"><div class="icon-box"><i class="bi bi-diagram-2-fill"></i></div><div><h3>Procesados</h3><p>Identificación individual</p></div></div>
+      <div class="module-body"><div class="vstack gap-3">{% for p in processed %}<div class="file-item"><div class="fw-bold">{{ p.nombres }} {{ p.apellidos }}</div><div class="small text-muted">Cédula {{ p.cedula }}</div></div>{% else %}<div class="empty-box">Sin procesados registrados.</div>{% endfor %}</div></div>
+    </div>
+
+  <aside class="sticky-top-panel">
+    <div class="summary-panel">
+      <h4>Archivos asociados</h4>
+      <div class="vstack gap-3 mt-3">
+        {% for f in case.files %}
+        <a href="/uploads/{{ f.stored_name }}" target="_blank" class="file-item">
+          <div class="small text-muted">{{ f.file_type }}</div>
+          <div class="fw-semibold">{{ f.original_name }}</div>
+        </a>
+        {% else %}<div class="empty-box">No hay archivos subidos.</div>{% endfor %}
+      </div>
+    </div>
+  </aside>
+</div>
+
+<section class="module-card mt-4">
+  <div class="module-head"><div class="icon-box"><i class="bi bi-camera-reels-fill"></i></div><div><h3>Videos del caso</h3><p>Archivos de video almacenados en este caso para futuras consultas. Se aceptan múltiples videos y distintos formatos.</p></div></div>
+  <div class="module-body">
+    {% set video_files = case_files | selectattr('file_type', 'equalto', 'case_video') | list %}
+    <div class="d-flex flex-wrap gap-2">
+      {% if video_files %}
+        {% for f in video_files %}
+          <a class="btn btn-outline-light rounded-pill" href="/uploads/{{ f.stored_name }}" target="_blank"><i class="bi bi-play-circle me-1"></i>{{ f.original_name }}</a>
+        {% endfor %}
+      {% else %}
+        <span class="text-muted">Sin videos registrados.</span>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+
+
+{% endblock %}

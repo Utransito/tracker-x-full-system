@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="tracker-page">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="mb-1">Vista previa de preinforme</h1>
+      <p class="text-muted mb-0">Revisa y completa los campos finales antes de generar el PDF definitivo del caso {{ case.case_number }}.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/cases/{{ case.id }}" class="btn btn-outline-light rounded-pill px-4">Volver al caso</a>
+    </div>
+  </div>
+
+  <div class="preinforme-preview-grid">
+    <section class="module-card">
+      <div class="module-head">
+        <div class="icon-box"><i class="bi bi-file-earmark-text"></i></div>
+        <div><h3>Datos editables del preinforme</h3><p>Estos campos se insertan en el documento final.</p></div>
+      </div>
+      <div class="module-body">
+        <form id="preinformeForm" class="event-grid">
+          <div class="field-span-12">
+            <label class="form-label">ASUNTO</label>
+            <input type="text" class="form-control" id="asunto" name="asunto" value="{{ default_asunto }}">
+          </div>
+          <div class="field-span-12">
+            <label class="form-label">DETALLE ASUNTO</label>
+            <textarea class="form-control" id="detalle_asunto" name="detalle_asunto" rows="3">{{ default_detalle_asunto }}</textarea>
+          </div>
+          <div class="field-span-12">
+            <label class="form-label">ACCIONES REALIZADAS</label>
+            <textarea class="form-control" id="acciones_realizadas" name="acciones_realizadas" rows="5">{{ default_acciones }}</textarea>
+          </div>
+
+          <div class="field-span-12">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label mb-0">ANEXOS DEL PREINFORME</label>
+              <button type="button" class="btn btn-outline-light rounded-pill px-3" onclick="agregarAnexo()"><i class="bi bi-plus-circle me-2"></i>Agregar anexo</button>
+            </div>
+            <div id="annexContainer"></div>
+            <small class="text-muted d-block mt-2">El cliente puede seleccionar del mismo caso qué fotografías irán en el informe y escribir manualmente el título de cada anexo.</small>
+          </div>
+
+          <div class="field-span-12 d-flex gap-2 flex-wrap mt-2">
+            <button type="button" class="btn btn-outline-light rounded-pill px-4" onclick="actualizarVistaPrevia()"><i class="bi bi-arrow-repeat me-2"></i>Actualizar vista previa</button>
+            <button type="button" class="btn btn-primary rounded-pill px-4" onclick="generarPdfFinal()"><i class="bi bi-file-earmark-pdf me-2"></i>Estoy de acuerdo, generar PDF</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="module-card">
+      <div class="module-head">
+        <div class="icon-box"><i class="bi bi-eye-fill"></i></div>
+        <div><h3>Previsualización interna</h3><p>El PDF se visualiza dentro de la misma plataforma.</p></div>
+      </div>
+      <div class="module-body p-0">
+        <iframe id="preinformeFrame" class="preinforme-frame"></iframe>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const imageOptions = {{ image_options|tojson }};
+const defaultAnnexes = {{ default_annexes|tojson }};
+
+function annexOptionHtml(selected){
+  return imageOptions.map(opt => `<option value="${opt.value}" ${selected === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('');
+}
+function getImageOptionByValue(value){
+  return imageOptions.find(opt => opt.value === value) || null;
+}
+function actualizarMiniaturaAnexo(selectEl){
+  const row = selectEl.closest('.annex-row');
+  if(!row) return;
+  const img = row.querySelector('.annex-mini-preview-img');
+  const preview = row.querySelector('.annex-mini-preview');
+  const found = getImageOptionByValue(selectEl.value);
+  if(found && found.preview_url){
+    img.src = found.preview_url;
+    img.style.display = 'block';
+    preview.classList.add('has-image');
+  }else{
+    img.removeAttribute('src');
+    img.style.display = 'none';
+    preview.classList.remove('has-image');
+  }
+}
+function agregarAnexo(data = null){
+  const container = document.getElementById('annexContainer');
+  const index = container.children.length + 1;
+  const title = data?.title || `Anexo ${index}`;
+  const source = data?.source || (imageOptions[0]?.value || '');
+  const row = document.createElement('div');
+  row.className = 'annex-row';
+  row.innerHTML = `
+    <div class="annex-row-head">
+      <strong>Anexo ${index}</strong>
+      <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="this.closest('.annex-row').remove(); renumerarAnexos();">Quitar</button>
+    </div>
+    <div class="annex-row-grid">
+      <div>
+        <label class="form-label">Título del anexo</label>
+        <input type="text" class="form-control" name="annex_title" value="${title}">
+      </div>
+      <div>
+        <label class="form-label">Fotografía del caso</label>
+        <select class="form-select annex-source-select" name="annex_source" onchange="actualizarMiniaturaAnexo(this)">${annexOptionHtml(source)}</select><div class="annex-mini-preview"><img class="annex-mini-preview-img" alt="Vista previa del anexo"></div>
+      </div>
+    </div>
+  `;
+  container.appendChild(row);
+  const select = row.querySelector('.annex-source-select');
+  if(select) actualizarMiniaturaAnexo(select);
+  renumerarAnexos();
+}
+function renumerarAnexos(){
+  document.querySelectorAll('#annexContainer .annex-row').forEach((row, idx) => {
+    const strong = row.querySelector('.annex-row-head strong');
+    if (strong) strong.textContent = `Anexo ${idx + 1}`;
+  });
+}
+function getPreinformeParams(){
+  const form = document.getElementById('preinformeForm');
+  const params = new URLSearchParams(new FormData(form));
+  return params.toString();
+}
+function actualizarVistaPrevia(){
+  const frame = document.getElementById('preinformeFrame');
+  frame.src = `/reports/{{ case.id }}/preinforme/view?${getPreinformeParams()}`;
+}
+function generarPdfFinal(){
+  window.open(`/reports/{{ case.id }}/preinforme?${getPreinformeParams()}`, '_blank');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if(defaultAnnexes.length){
+    defaultAnnexes.forEach(item => agregarAnexo(item));
+  } else {
+    agregarAnexo();
+  }
+  actualizarVistaPrevia();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ title or 'GDN · Centro de Análisis y Seguridad Empresarial' }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+<body class="dark-app">
+  {% if user %}
+  <nav class="navbar navbar-expand-lg app-nav sticky-top gdn-nav">
+    <div class="container-fluid px-4 app-shell">
+      <a class="navbar-brand gdn-brandbar" href="/dashboard"><img src="/static/img/gdn-mark-v32.png" alt="GDN" class="nav-brand-img"><span class="gdn-brandbar-text"><strong>GDN</strong><small>Centro de Análisis y Seguridad Empresarial</small></span></a>
+      <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu"><span class="navbar-toggler-icon"></span></button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/cases">Casos</a></li>
+          <li class="nav-item"><a class="nav-link" href="/cases/new">Nuevo caso</a></li>
+          <li class="nav-item"><a class="nav-link" href="/reports">Reportes</a></li>
+          <li class="nav-item"><a class="nav-link" href="/buscador-ia">Buscador IA</a></li>
+          {% if user.role == 'admin' %}<li class="nav-item"><a class="nav-link" href="/users">Usuarios</a></li>{% endif %}
+          <li class="nav-item"><span class="badge role-badge">{{ user.full_name }} · {{ user.role|upper }}</span></li>
+          <li class="nav-item"><a class="btn btn-sm btn-outline-light rounded-pill px-3" href="/logout">Salir</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+  <main class="container-fluid px-4 py-4 app-shell">{% block content %}{% endblock %}</main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

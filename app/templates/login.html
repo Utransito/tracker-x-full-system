@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="gdn-login-wrap">
+  <div class="gdn-login-panel">
+    <div class="gdn-login-left">
+      <div class="gdn-brand-hero">
+        <img src="/static/img/gdn-mark-v32.png" alt="GDN" class="gdn-brand-hero-img">
+        <div class="gdn-brand-textblock">
+          <div class="gdn-hero-subtitle">CENTRO DE ANÁLISIS Y</div>
+          <div class="gdn-hero-subtitle">SEGURIDAD EMPRESARIAL</div>
+        </div>
+      </div>
+      <div class="gdn-login-divider"></div>
+      <h1 class="gdn-login-title">Acceso seguro a la plataforma operativa</h1>
+      <p class="gdn-login-text">Entorno ejecutivo para gestión de novedades, perfiles, evidencias y reportes analíticos.</p>
+
+      <div class="gdn-visual-stage login-visual">
+        <div class="gdn-grid"></div>
+        <div class="gdn-wave w1"></div>
+        <div class="gdn-wave w2"></div>
+        <div class="gdn-wave w3"></div>
+        <div class="gdn-trend-line t1"></div>
+        <div class="gdn-trend-line t2"></div>
+        <div class="gdn-trend-line t3"></div>
+        <div class="gdn-arrow-up"></div>
+        <div class="gdn-bars-cluster">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="gdn-micro-circles">
+          <div>21%</div><div>45%</div><div>72%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gdn-login-right">
+      <div class="gdn-login-card">
+        <div class="gdn-login-badge">GDN · ACCESO SEGURO</div>
+        <h3>Iniciar sesión</h3>
+        <p>Ingrese sus credenciales para acceder al sistema.</p>
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="post" action="/login" class="vstack gap-3 mt-4">
+          <div>
+            <label class="form-label">Usuario</label>
+            <input class="form-control form-control-lg" name="username" value="admin">
+          </div>
+          <div>
+            <label class="form-label">Contraseña</label>
+            <input class="form-control form-control-lg" name="password" type="password" value="admin123">
+          </div>
+          <button class="btn btn-primary btn-lg rounded-pill mt-2">Entrar al sistema</button>
+        </form>
+        <div class="gdn-login-accounts">
+          <div><span>Administrador</span><strong>admin / admin123</strong></div>
+          <div><span>Central</span><strong>central / 123456</strong></div>
+          <div><span>Hurtos</span><strong>hurtos / 123456</strong></div>
+          <div><span>Delitos</span><strong>delitos / 123456</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

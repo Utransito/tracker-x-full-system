@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="reports-hero mb-4">
+  <div>
+    <span class="hero-chip"><i class="bi bi-graph-up-arrow me-2"></i>GDN · Inteligencia de reportes</span>
+    <h1 class="display-6 fw-bold mt-3 mb-2">Panel de reportes y analítica</h1>
+    <p class="mb-0">Resumen ejecutivo con métricas, gráficos y descargas en PDF conforme a la información registrada en el sistema.</p>
+  </div>
+  <div class="reports-actions">
+    <a href="/reports/summary/pdf" class="btn btn-primary rounded-pill px-4"><i class="bi bi-file-earmark-pdf me-2"></i>Descargar resumen PDF</a>
+    <a href="/reports/executive/pdf" class="btn btn-outline-light rounded-pill px-4"><i class="bi bi-bar-chart-line-fill me-2"></i>Descargar reporte ejecutivo</a>
+  </div>
+</div>
+
+<div class="reports-grid mb-4">
+  <div class="metric-card p-3"><div class="metric-label">Total casos</div><div class="metric-value">{{ summary.total_cases }}</div></div>
+  <div class="metric-card p-3"><div class="metric-label">Interior</div><div class="metric-value">{{ summary.location_counts.get('Interior del local', 0) }}</div></div>
+  <div class="metric-card p-3"><div class="metric-label">Exterior</div><div class="metric-value">{{ summary.location_counts.get('Exterior del local', 0) }}</div></div>
+  <div class="metric-card p-3"><div class="metric-label">Confirmadas</div><div class="metric-value">{{ summary.alert_counts.get('Confirmado', 0) }}</div></div>
+  <div class="metric-card p-3"><div class="metric-label">Descartadas</div><div class="metric-value">{{ summary.alert_counts.get('Descartado', 0) }}</div></div>
+</div>
+
+<section class="module-card mb-4">
+  <div class="module-head">
+    <div class="icon-box"><i class="bi bi-kanban-fill"></i></div>
+    <div>
+      <h3>Reporte ejecutivo consolidado</h3>
+      <p>Visualización ejecutiva basada en los mismos casos registrados en el sistema.</p>
+    </div>
+  </div>
+  <div class="module-body">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="summary-box h-100">
+          <h5 class="mb-3">Afectación</h5>
+          <canvas id="affectationChartExec" height="150"></canvas>
+          <hr>
+          <h5 class="mb-3">Formatos</h5>
+          <canvas id="formatBarChartExec" height="170"></canvas>
+          <hr>
+          <h5 class="mb-3">Región</h5>
+          <canvas id="regionBarChartExec" height="190"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="summary-box h-100">
+          <h5 class="mb-3">Novedad</h5>
+          <canvas id="noveltyBarChartExec" height="150"></canvas>
+          <hr>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Subtipo de novedad</h5>
+            <span class="text-muted small">Top registrados</span>
+          </div>
+          <div class="table-responsive" style="max-height: 420px; overflow:auto;">
+            <table class="table table-sm align-middle report-table mb-0">
+              <thead>
+                <tr><th>Subtipo</th><th class="text-end">Casos</th></tr>
+              </thead>
+              <tbody>
+              {% for subtype, count in summary.subtype_counts.items() %}
+                <tr>
+                  <td>{{ subtype }}</td>
+                  <td class="text-end">{{ count }}</td>
+                </tr>
+              {% else %}
+                <tr><td colspan="2" class="text-muted">Sin registros.</td></tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="summary-box h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Ranking tiendas casos</h5>
+            <span class="text-muted small">Mayor a menor</span>
+          </div>
+          <div class="table-responsive" style="max-height: 740px; overflow:auto;">
+            <table class="table table-sm align-middle report-table mb-0">
+              <thead>
+                <tr><th>Tienda</th><th class="text-end">Casos</th></tr>
+              </thead>
+              <tbody>
+              {% for store_key, count in summary.store_ranking.items() %}
+                <tr>
+                  <td>{{ store_key }}</td>
+                  <td class="text-end">{{ count }}</td>
+                </tr>
+              {% else %}
+                <tr><td colspan="2" class="text-muted">Sin registros.</td></tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="reports-layout">
+  <section class="module-card">
+    <div class="module-head"><div class="icon-box"><i class="bi bi-pie-chart-fill"></i></div><div><h3>Distribución de novedades</h3><p>Composición actual por tipo de novedad.</p></div></div>
+    <div class="module-body"><canvas id="noveltyChart" height="120"></canvas></div>
+  </section>
+
+  <section class="module-card">
+    <div class="module-head"><div class="icon-box"><i class="bi bi-shop"></i></div><div><h3>Tiendas por formato</h3><p>Distribución consolidada por formato comercial.</p></div></div>
+    <div class="module-body"><canvas id="storeChart" height="120"></canvas></div>
+  </section>
+
+  <section class="module-card">
+    <div class="module-head"><div class="icon-box"><i class="bi bi-geo-alt-fill"></i></div><div><h3>Casos por región</h3><p>Comparativo regional conforme a casos ingresados.</p></div></div>
+    <div class="module-body"><canvas id="regionChart" height="120"></canvas></div>
+  </section>
+
+  <section class="module-card">
+    <div class="module-head"><div class="icon-box"><i class="bi bi-table"></i></div><div><h3>Resumen ejecutivo</h3><p>Tablas rápidas para exposición y toma de decisiones.</p></div></div>
+    <div class="module-body">
+      <div class="summary-mini-grid">
+        <div class="summary-box">
+          <h5>Total casos</h5>
+          <table class="table table-sm align-middle report-table">
+            <tr><th>Interior</th><td>{{ summary.location_counts.get('Interior del local', 0) }}</td></tr>
+            <tr><th>Exterior</th><td>{{ summary.location_counts.get('Exterior del local', 0) }}</td></tr>
+            <tr class="fw-bold"><th>Total</th><td>{{ summary.total_cases }}</td></tr>
+          </table>
+        </div>
+        <div class="summary-box">
+          <h5>Afectación</h5>
+          <table class="table table-sm align-middle report-table">
+            {% for k,v in summary.affectation_counts.items() %}
+            <tr><th>{{ k }}</th><td>{{ v }}</td></tr>
+            {% endfor %}
+            <tr class="fw-bold"><th>Total</th><td>{{ summary.affectation_total }}</td></tr>
+          </table>
+        </div>
+        <div class="summary-box">
+          <h5>Alertas</h5>
+          <table class="table table-sm align-middle report-table">
+            {% for k,v in summary.alert_counts.items() %}
+            <tr><th>{{ k }}</th><td>{{ v }}</td></tr>
+            {% endfor %}
+            <tr class="fw-bold"><th>Total</th><td>{{ summary.alert_total }}</td></tr>
+          </table>
+        </div>
+        <div class="summary-box">
+          <h5>Tiendas</h5>
+          <table class="table table-sm align-middle report-table">
+            {% for k,v in summary.store_format_counts.items() %}
+            <tr><th>{{ k }}</th><td>{{ v }}</td></tr>
+            {% endfor %}
+            <tr class="fw-bold"><th>Total</th><td>{{ summary.store_format_total }}</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="module-card mt-4">
+  <div class="module-head"><div class="icon-box"><i class="bi bi-folder2-open"></i></div><div><h3>Fichas descargables por caso</h3><p>Puedes bajar la ficha PDF de cualquier caso ya registrado.</p></div></div>
+  <div class="module-body">
+    <div class="table-responsive">
+      <table class="table align-middle report-table">
+        <thead><tr><th>Caso</th><th>Fecha</th><th>Tienda</th><th>Novedad</th><th>Acciones</th></tr></thead>
+        <tbody>
+        {% for case in recent_cases %}
+          <tr>
+            <td>{{ case.case_number }}</td>
+            <td>{{ case.event_date }} {{ case.event_time }}</td>
+            <td>{{ case.store_code }} - {{ case.store_name }}</td>
+            <td>{{ case.novelty_type or case.process }}</td>
+            <td class="d-flex gap-2 flex-wrap">
+              <a href="/reports/{{ case.id }}/pdf" class="btn btn-sm btn-primary rounded-pill px-3"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted">No existen casos aún.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const noveltyData = {{ summary.novelty_counts|tojson }};
+const formatData = {{ summary.store_format_counts|tojson }};
+const regionData = {{ summary.region_counts|tojson }};
+const affectationData = {{ summary.affectation_counts|tojson }};
+
+function buildChart(id, type, dataObj){
+  const labels = Object.keys(dataObj || {});
+  const values = Object.values(dataObj || {});
+  if(!labels.length){ return; }
+  new Chart(document.getElementById(id), {
+    type,
+    data: {
+      labels,
+      datasets: [{ data: values, borderWidth: 2, fill: type==='line' || type==='bar' }]
+    },
+    options: {
+      responsive: true,
+      scales: type === 'bar' ? { y: { beginAtZero: true } } : {},
+      plugins: { legend: { display: type === 'pie' || type === 'doughnut' } }
+    }
+  });
+}
+buildChart('noveltyChart','pie', noveltyData);
+buildChart('storeChart','bar', formatData);
+buildChart('regionChart','bar', regionData);
+buildChart('affectationChartExec','bar', affectationData);
+buildChart('noveltyBarChartExec','bar', noveltyData);
+buildChart('formatBarChartExec','bar', formatData);
+buildChart('regionBarChartExec','bar', regionData);
+</script>
+{% endblock %}

@@ -1,0 +1,970 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+  <div>
+    <h1 class="fw-bold mb-1">GDN · Nuevo caso</h1>
+    <p class="text-muted mb-0">{% if page_mode == "edit" %}Edición supervisada del caso. Al guardar, el sistema conserva una copia de respaldo de la versión anterior.{% else %}Flujo corregido con navegación por botón <strong>Siguiente</strong> y validación antes de avanzar.{% endif %}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/cases" class="btn btn-outline-light rounded-pill px-4">Ver casos</a>
+    <button form="trackerForm" class="btn btn-primary rounded-pill px-4"><i class="bi bi-save me-2"></i>{{ submit_label or "Guardar caso" }}</button>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="trackerForm" action="{{ form_action or '/cases/new' }}">
+  <input type="hidden" name="police_unit" value="">
+  <input type="hidden" name="requested_by" value="">
+  <input type="hidden" name="victims_json" id="victims_json">
+  <input type="hidden" name="suspects_json" id="suspects_json">
+  <input type="hidden" name="merchandise_json" id="merchandise_json">
+  <input type="hidden" name="photo_notes_json" id="photo_notes_json">
+  <input type="hidden" name="vehicles_json" id="vehicles_json">
+  <input type="hidden" name="processed_json" id="processed_json">
+  <input type="hidden" name="proceedings_json" id="proceedings_json">
+
+  <div class="tracker-page">
+    <div class="tracker-layout">
+      <section class="tracker-banner">
+        <div class="tracker-header-title">Sistema Integrado de Seguridad Empresarial</div>
+        <div class="tracker-subtitle text-center mt-2">No se puede avanzar de pantalla sin completar la actual. La navegación es por botones.</div>
+        <div class="wizard-nav">
+          <button type="button" class="wizard-btn active" data-step="0"><i class="bi bi-alarm-fill"></i><span>ALERTA</span></button>
+          <button type="button" class="wizard-btn" data-step="1"><i class="bi bi-geo-alt-fill"></i><span>ESPACIO TIEMPO</span></button>
+          <button type="button" class="wizard-btn" data-step="2"><i class="bi bi-journal-richtext"></i><span>NOVEDAD</span></button>
+          <button type="button" class="wizard-btn" data-step="3"><i class="bi bi-people-fill"></i><span>victima_tia</span></button>
+          <button type="button" class="wizard-btn" data-step="4"><i class="bi bi-person-bounding-box"></i><span>PERFILES</span></button>
+          <button type="button" class="wizard-btn" data-step="5"><i class="bi bi-cart-fill"></i><span>MERCADERÍA</span></button>
+          <button type="button" class="wizard-btn" data-step="6"><i class="bi bi-camera-fill"></i><span>SEGUIMIENTO NOVEDAD</span></button>
+          <button type="button" class="wizard-btn" data-step="7"><i class="bi bi-bank2"></i><span>DELEGACIÓN</span></button>
+          <button type="button" class="wizard-btn" data-step="8"><i class="bi bi-diagram-2-fill"></i><span>PROCESADOS</span></button>
+        </div>
+      </section>
+
+      <div id="wizardError" class="wizard-error d-none"></div>
+      {% if page_mode == "edit" %}<div class="rule-box small mb-3"><strong>Modo edición:</strong> los datos previamente guardados se cargan automáticamente. Modifica solo lo necesario y guarda los cambios.</div>{% endif %}
+
+      
+
+<section class="module-card wizard-step active" id="step-alerta">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-alarm-fill"></i></div><div><h3>ALERTA</h3><p>Pantalla 01 · Corrección puntual solo de alerta.</p></div></div>
+        <div class="module-body">
+          <div class="rule-box small mb-3"><strong>Control geoespacial:</strong> este bloque concentra los datos de monitoreo, tienda, ubicación, territorio policial y estado del evento.</div>
+          <div class="event-grid">
+            <div class="field-span-3">
+              <label class="form-label">Generación de alerta</label>
+              <select name="alarm_activated" id="alarm_activated" class="form-select step1-core alert-select-polish" onchange="toggleAlarm()" onchange="toggleAlarm()">
+                <option value="SI">SI</option>
+                <option value="NO" selected>NO</option>
+              </select>
+            </div>
+            <div class="field-span-3">
+              <label class="form-label">Proceso</label>
+              <select name="process" id="process" class="form-select step1-core" onchange="toggleProcessRules()" onchange="toggleProcessRules()">
+                <option value=""></option>
+                <option value="HURTO">HURTO</option>
+                <option value="DELITO">DELITO</option>
+              </select>
+            </div>
+            <div class="field-span-3">
+              <label class="form-label">Actividad operativa</label>
+              <select name="sub_process" id="sub_process" class="form-select step1-core">
+                <option value=""></option>
+                <option value="Seguimiento sospechoso">Seguimiento sospechoso</option>
+                <option value="Registro novedad">Registro novedad</option>
+              </select>
+            </div>
+            <div class="field-span-3">
+              <div class="rule-box small" id="alarmInfo"><strong>Regla:</strong> Proceso y Actividad operativa siempre visibles. Si la alerta es <strong>NO</strong>, solo se oculta el bloque operativo amarillo.</div>
+            </div>
+          </div>
+
+          <div id="alarmBlock" class="mt-3 d-none">
+            <div class="event-grid">
+              <div class="field-span-6"><label class="form-label">Nombre del jefe del local</label><input name="chief_name" id="chief_name" class="form-control step1-conditional"></div>
+              <div class="field-span-3"><label class="form-label">Hora activación alarma</label><input name="alert_time" id="alert_time" type="time" class="form-control step1-conditional"></div>
+              <div class="field-span-3"><label class="form-label">Empresa de seguridad</label><select name="security_company" id="security_company" class="form-select step1-conditional"><option value=""></option>{% for v in security_companies %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+              <div class="field-span-3"><label class="form-label">Operador empresa seguridad</label><input name="security_operator" id="security_operator" class="form-control step1-conditional"></div>
+              <div class="field-span-3"><label class="form-label">Hora comunica al centro análisis</label><input name="center_operator_time" id="center_operator_time" type="time" class="form-control step1-conditional"></div>
+              <div class="field-span-6"><label class="form-label">Nombre operador centro análisis</label><input name="center_operator_name" id="center_operator_name" class="form-control step1-conditional"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-espacio-tiempo">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-geo-alt-fill"></i></div><div><h3>ESPACIO TIEMPO</h3><p>Pantalla 02 · Variables restauradas según la matriz del cliente.</p></div></div>
+        <div class="module-body"><div class="event-grid">
+          <div class="field-span-3 d-none" id="centralCodeWrap"><label class="form-label">Código central de monitoreo</label><select name="central_code" id="central_code" class="form-select"><option value=""></option>{% for c in central_options %}<option value="{{ c.code }}">{{ c.code }}</option>{% endfor %}</select></div>
+          <div class="field-span-3 d-none" id="centralNameWrap"><label class="form-label">Nombre central de monitoreo</label><input id="central_name" class="form-control" readonly></div>
+
+          <div class="field-span-3"><label class="form-label">Código de tienda</label><select name="store_code" id="store_code" class="form-select"><option value=""></option>{% for s in stores %}<option value="{{ s.store_code }}">{{ s.store_code }} - {{ s.store_name }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Nombre de tienda</label><input id="store_name_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Formato de tienda</label><input id="format_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Provincia</label><input id="province_view" class="form-control" readonly></div>
+
+          <div class="field-span-3"><label class="form-label">Cantón</label><input id="canton_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Región</label><input id="region_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Distrito</label><input id="district_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Zona</label><input id="zone_view" class="form-control" readonly></div>
+
+          <div class="field-span-3"><label class="form-label">Latitud Y</label><input id="lat_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Longitud X</label><input id="lng_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Subzona PN</label><input id="subzone_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Distrito PN</label><input id="police_district_view" class="form-control" readonly></div>
+
+          <div class="field-span-3"><label class="form-label">Circuito PN</label><input id="circuit_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Subcircuito PN</label><input id="subcircuit_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Código subcircuito</label><input id="subcircuit_code_view" class="form-control" readonly></div>
+          <div class="field-span-3"><label class="form-label">Afectación local</label><select name="affectation" class="form-select">{% for v in affectations %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+
+          <div class="field-span-3"><label class="form-label">Ubicación novedad</label><select name="novelty_location" class="form-select">{% for v in novelty_locations %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Empresa / lugar</label><select name="place_company" class="form-select">{% for v in places %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Subtipo lugar</label><select name="place_subtype" class="form-select">{% for v in place_subtypes %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Fecha evento</label><input name="event_date" type="date" class="form-control"></div>
+
+          <div class="field-span-3"><label class="form-label">Hora del evento</label><input name="event_time" type="time" class="form-control"></div>
+          <div class="field-span-3" id="alertStateWrap"><label class="form-label">Estado alerta</label><select name="alert_state" id="alert_state" class="form-select">{% for v in alert_states %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-6 d-none" id="discardedWrap"><label class="form-label">Razón alerta descartada</label><select name="discarded_reason" id="discarded_reason" class="form-select"><option value=""></option>{% for v in discarded_reasons %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+        </div></div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-novedad">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-journal-richtext"></i></div><div><h3>NOVEDAD</h3><p>Pantalla 03</p></div></div>
+        <div class="module-body"><div class="event-grid">
+          <div class="field-span-3"><label class="form-label">Tipo de novedad</label><select name="novelty_type" id="novelty_type" class="form-select"><option value=""></option>{% for v in novelty_types %}<option value="{{v}}">{{ v }}</option>{% endfor %}</select></div>
+          <div class="field-span-3"><label class="form-label">Subtipo de novedad</label><select name="novelty_subtype" id="novelty_subtype" class="form-select"><option value=""></option></select></div>
+          <div class="field-span-3"><label class="form-label">Modalidad</label><select name="modality" id="modality" class="form-select"><option value=""></option></select></div>
+          <div class="field-span-3"><label class="form-label">Número de integrantes</label><input name="number_of_members" type="number" min="1" value="1" class="form-control"></div>
+          <div class="field-span-12"><label class="form-label">Detalle de la novedad</label><textarea name="detail" id="detail" rows="7" class="form-control detail-expanded"></textarea></div>
+          <div class="field-span-12">
+            <label class="form-label">Fotografía integral de la novedad</label>
+            <div class="novelty-upload-box">
+              <label for="novelty_attachment" class="btn btn-primary px-4 novelty-upload-btn"><i class="bi bi-paperclip me-2"></i>Agregar anexo</label>
+              <input type="file" id="novelty_attachment" name="novelty_attachment" accept="image/*" class="d-none">
+              <div class="novelty-upload-meta">
+                <span id="novelty_attachment_name">Sin archivo seleccionado</span>
+                <small>Permite subir una fotografía integral de la novedad para su almacenamiento y uso en reportes.</small>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-victima">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-people-fill"></i></div><div><h3>victima_tia</h3><p>Pantalla 04</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existen víctimas?</label><select id="has_victims" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si es <strong>SI</strong>, se despliegan los campos. Si es <strong>NO</strong>, continúas.</div></div>
+          </div>
+          <div id="victimSection"><div class="d-flex justify-content-between align-items-center mb-3"><button type="button" class="btn btn-outline-light" onclick="addVictim()"><i class="bi bi-plus-circle me-1"></i>Agregar víctima</button></div><div id="victimsContainer"></div></div>
+        </div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-perfiles">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-person-bounding-box"></i></div><div><h3>PERFILES</h3><p>Pantalla 05</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existen personas sospechosas?</label><select id="has_suspects" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si es <strong>SI</strong>, se despliegan perfiles. Si es <strong>NO</strong>, continúa a vehículos.</div></div>
+          </div>
+          <div id="suspectSection"><div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><div class="d-flex gap-2 flex-wrap"><button type="button" class="btn btn-outline-light" onclick="addSuspect()"><i class="bi bi-plus-circle me-1"></i>Agregar perfil</button><button type="button" class="btn btn-primary btn-sm rounded-pill px-3" onclick="saveProfilesDraft()"><i class="bi bi-save me-1"></i>Guardar perfiles</button></div><small class="text-muted">El botón principal <strong>Guardar caso</strong> almacena toda la información en el sistema.</small></div><div id="suspectsContainer"></div></div>
+          <div class="event-grid mt-4 mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existen vehículos?</label><select id="has_vehicles" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si es <strong>SI</strong>, se despliegan los campos de vehículos. Si es <strong>NO</strong>, continúa.</div></div>
+          </div>
+          <div id="vehicleSection"><div class="d-flex justify-content-between align-items-center mb-3"><button type="button" class="btn btn-outline-light" onclick="addVehicle()"><i class="bi bi-plus-circle me-1"></i>Agregar vehículo</button></div><div id="vehiclesContainer"></div></div>
+        </div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-mercaderia">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-cart-fill"></i></div><div><h3>MERCADERÍA</h3><p>Pantalla 06 · Variables alineadas al requerimiento.</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existe mercadería hurtada?</label><select id="has_merchandise" name="has_merchandise" class="form-select"><option value="SI">SI</option><option value="NO" selected>NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si seleccionas <strong>SI</strong>, se despliegan los ítems de mercadería hurtada. Si seleccionas <strong>NO</strong>, se omite este bloque.</div></div>
+          </div>
+          <div id="merchSection" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-3"><button type="button" class="btn btn-outline-light" onclick="addMerch()"><i class="bi bi-plus-circle me-1"></i>Agregar producto</button></div>
+            <div id="merchContainer"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="module-card wizard-step" id="step-fotografias">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-camera-fill"></i></div><div><h3>SEGUIMIENTO NOVEDAD</h3><p>Pantalla 07</p></div></div>
+        <div class="module-body"><div class="photo-grid">{% for i in range(1,21) %}<div class="photo-slot"><div class="fw-bold mb-2">Evidencia {{ i }}</div><input type="file" name="gallery_{{i}}" accept="image/*" class="form-control mb-2 photo-file"><textarea class="form-control photo-note" rows="2" placeholder="Resumen descriptivo de la evidencia {{i}}"></textarea></div>{% endfor %}</div><div class="video-upload-panel mt-4"><div class="video-upload-chip">VIDEO</div><div class="video-upload-body"><label class="btn btn-outline-light video-upload-btn mb-0"><input type="file" name="case_video" id="case_video" accept=".mp4,.avi,.mov,.mkv,.wmv,.webm,.mpeg,.mpg,.m4v,.3gp,.3g2,.flv,.ts,.mts,.m2ts,video/*" class="d-none" onchange="updateCaseVideoLabel(this)" multiple><span id="case_video_label">Seleccionar video(s)</span></label><div class="small text-muted mt-2">Los videos quedarán almacenados en el caso generado para futuras consultas y revisión posterior. Se admiten múltiples formatos y varios archivos por caso.</div></div></div></div>
+      </section>
+
+      
+<section class="module-card wizard-step" id="step-delegacion">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-bank2"></i></div><div><h3>MONITOREO DEL PROCESO PENAL</h3><p>Pantalla 08 · Investigación o flagrancia con condicionales.</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existe delegación o denuncia?</label><select id="has_penal_process" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-4"><label class="form-label">Proceso penal</label><select id="penal_process_type" class="form-select"><option value="INVESTIGACION">Investigación</option><option value="FLAGRANCIA">Flagrancia</option></select></div>
+            <div class="field-span-4"><label class="form-label" id="penal_aux_label">¿Existe delegación?</label><select id="penal_aux_exists" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+          </div>
+          <div id="penalSection">
+            <div id="investigacionFields">
+              <div class="event-grid">
+                <div class="field-span-4"><label class="form-label">No. oficio delegación</label><input name="delegation" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">PDF delegación</label><input type="file" name="denuncia_pdf" accept="application/pdf" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fecha oficio delegación</label><input type="date" class="form-control diligence-date"></div>
+                <div class="field-span-4"><label class="form-label">Tipo delito a investigar</label><select class="form-select" id="investigation_crime"><option>Robo</option><option>Estafa</option><option>Extorsión</option><option>Secuestro</option><option>Hurto</option><option>Homicidio</option><option>Asesinato</option><option>Asociación ilícita</option><option>Delincuencia organizada</option></select></div>
+                <div class="field-span-4"><label class="form-label">No. noticia del delito / denuncia</label><input name="complaint_number" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">PDF denuncia</label><input type="file" name="diligencias_pdf" accept="application/pdf" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fecha denuncia</label><input name="complaint_date" type="date" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fiscalía o unidad judicial</label><input name="prosecutor_office" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fiscal que lleva el caso</label><input name="prosecutor_name" class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Abogado patrocinador</label><input class="form-control"></div>
+                <div class="field-span-12">
+                  <div id="investigationDiligenceList"></div>
+                  <div class="diligence-actions">
+                    <button type="button" class="btn btn-primary diligence-add-btn" onclick="addDiligenceRow('investigationDiligenceList')">AGREGAR MAS DILIGENCIAS</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="flagranciaFields" class="d-none">
+              <div class="event-grid">
+                <div class="field-span-4"><label class="form-label">No. del parte policial</label><input class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">PDF parte</label><input type="file" accept="application/pdf" class="form-control diligence-file"></div>
+                <div class="field-span-4"><label class="form-label">No. noticia del delito / denuncia</label><input class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">PDF denuncia</label><input type="file" accept="application/pdf" class="form-control diligence-file"></div>
+                <div class="field-span-4"><label class="form-label">Fecha noticia del delito / denuncia</label><input type="date" class="form-control diligence-date"></div>
+                <div class="field-span-4"><label class="form-label">Fiscalía o unidad judicial</label><input class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Fiscal que lleva el caso</label><input class="form-control"></div>
+                <div class="field-span-4"><label class="form-label">Abogado patrocinador</label><input class="form-control"></div>
+                <div class="field-span-12">
+                  <div id="flagranciaDiligenceList"></div>
+                  <div class="diligence-actions">
+                    <button type="button" class="btn btn-primary diligence-add-btn" onclick="addDiligenceRow('flagranciaDiligenceList')">AGREGAR MAS DILIGENCIAS</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+<section class="module-card wizard-step" id="step-procesados">
+        <div class="module-head"><div class="icon-box"><i class="bi bi-diagram-2-fill"></i></div><div><h3>PROCESADOS</h3><p>Pantalla 09 · Variables completas del requerimiento.</p></div></div>
+        <div class="module-body">
+          <div class="event-grid mb-3">
+            <div class="field-span-4"><label class="form-label">¿Existen procesados?</label><select id="has_processed" class="form-select"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+            <div class="field-span-8"><div class="rule-box small mb-0">Si responde <strong>NO</strong>, no se despliegan las variables de procesados.</div></div>
+          </div>
+          <div id="processedSection">
+            <div class="d-flex justify-content-between align-items-center mt-2 mb-3"><button type="button" class="btn btn-outline-light" onclick="addProcessed()"><i class="bi bi-plus-circle me-1"></i>Agregar procesado</button></div>
+            <div id="processedContainer"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="wizard-footer">
+        <button type="button" class="btn btn-outline-light px-4" id="prevStepBtn"><i class="bi bi-arrow-left me-2"></i>Anterior</button>
+        <div class="wizard-progress-text" id="wizardProgressText">Pantalla 1 de 9</div>
+        <button type="button" class="btn btn-primary px-4" id="nextStepBtn">Siguiente<i class="bi bi-arrow-right ms-2"></i></button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+const productTypes = {{ product_types|tojson }};
+const existingCase = {{ case_data|tojson if case_data else 'null' }};
+const profilesDraftKey = 'gdn_profiles_draft_v44';
+const noveltyMatrix = {{ novelty_matrix|tojson }};
+const modalidadCatalogo = {{ (modalidad_catalogo|default([], true))|tojson }};
+const storesCatalog = {{ stores_json|tojson }};
+const centralCatalog = {{ central_options|tojson }};
+const nationalities = ['Ecuador','Colombia','Perú','Venezuela','México','Brasil','Chile'];
+const suspectStatusOptions = ['Aprehendido','No aprehendido','Procesado'];
+const antecedentesOptions = ['Reincidente','Sospechoso no reconocido'];
+const tiposOrganizacion = ['Delincuencia común','Delincuencia organizada','Delincuente habitual','No aplica'];
+const orgNames = ['Águilas','AguilasKiller','Ak47','Caballeros Oscuros','ChoneKiller','Choneros','Corvicheros','Cuartel de las Feas','Cubanos','Fatales','Gánster','Kater Piler','Lagartos','Latin Kings','Lobos','Los p.27','Los Tiburones','Mafia18','Mafia Trébol','Patrones','R7','Tiguerones','No reconocida'];
+const contexturaOptions = ['Alto','Bajo','Estatura mediana','Delgado','Gordo','Obeso'];
+const etniaOptions = ['Blanca','Negra','Mestizo','Montubio','Indígena'];
+const cabelloOptions = ['Lacio','Ondulado','Rizado','Sin cabello','Afro'];
+const armaIdentificadaOptions = ['Arma de fuego','Arma blanca','Objeto contundente','Sin arma'];
+const armaFuegoOptions = ['Pistola','Revolver','Metralleta','Escopeta','Fusil'];
+const armaBlancaOptions = ['Cuchillo','Machete','Daga','Espada','Pica hielo'];
+const armaContundenteOptions = ['Palo','Botella','Martillo','Bate'];
+const movilizacionOptions = ['Motocicleta','Tricimoto','Moto taxi','Automóvil','Camioneta','Furgoneta','Bicicleta','Escúter','A pie'];
+const marcasFisicasOptions = ['Cicatrices','Lunares o manchas','Tatuajes','Piercings o perforaciones visibles','Malformaciones o deformidades'];
+const edadesOptions = Array.from({length:200}, (_,i)=> String(i+1));
+const vehicleTypeOptions = ['Automóvil','Motocicleta','Tricimoto','Moto taxi','Camión','Furgoneta','Bus','Camioneta','Jet 4x4','Bicicleta','Cuadrón','Furgoneta'];
+const vehicleBrandOptions = ['Toyota','Chevrolet','Hyundai','Kia','Nissan','Mazda','Ford','Volkswagen','Honda','Mitsubishi','BMW','Mercedes-Benz','Audi','Renault','Peugeot','Citroën','Subaru','Suzuki','Jeep','Volvo','Hino','Isuzu','Scania','Mercedes-Benz (camiones)','Yamaha','Honda','Suzuki','Kawasaki','Bajaj'];
+const vehicleCharacteristicOptions = ['Color poco común o repintado reciente','Placas alteradas, inexistentes, cubiertas o no visibles','Vidrios polarizados en exceso','Golpes, rayones o daños visibles no habituales','Modificaciones no originales (parachoques, luces, escape)','Ausencia o manipulación de logotipos o emblemas'];
+const vehicleColorOptions = ['Blanco','Negro','Gris','Plateado','Rojo','Azul','Verde','Amarillo'];
+const passengerOptions = Array.from({length:20}, (_,i)=> String(i+1));
+const actividadPersonaOptions = ['Permanencia prolongada sin razón aparente.','Merodeo o rondas repetitivas en un mismo punto.','Ocultar el rostro sin motivo (gorros, capuchas, mascarillas en espacios donde no son necesarias).','Rechazar cámaras o alejarse al notar vigilancia.','Miradas constantes hacia cámaras, guardias o salidas.','Cambios bruscos de dirección o actitud al ser observado.','Intentos de forzar cerraduras, vehículos, puertas o candados.','Manipulación de cables, medidores, cercas o sistemas de seguridad.','Tomar fotos o videos de zonas sensibles (cajas fuertes, accesos restringidos, controles).','Fingir ser un cliente, trabajador o proveedor sin evidencia que lo respalde.','Ingresar repetidamente a la tienda.','Preguntas insistentes sobre rutinas, horarios, sistemas de seguridad o cantidad de personal.','Reuniones o movimientos repetitivos entre varios individuos sin propósito claro'];
+const actividadVehiculoOptions = ['Circulación repetitiva alrededor de un mismo lugar sin razón aparente.','Permanencia prolongada con el motor encendido.','Estacionamiento en zonas estratégicas o poco visibles.','Arranque o huida repentina ante presencia de seguridad.','Uso del vehículo para vigilar, esperar o facilitar la fuga.','Permanencia prolongada sin justificación.','Repetición en distintos días/horarios.','Placas cubiertas, adulteradas o ausentes.','Conductores que evitan cámaras o vigilancia.','Movimientos coordinados con personas sospechosas.','Apoyo logístico (espera, fuga, transporte).'];
+const stepIds = ['step-alerta','step-espacio-tiempo','step-novedad','step-victima','step-perfiles','step-mercaderia','step-fotografias','step-delegacion','step-procesados'];
+let currentStep = 0;
+
+function updateCaseVideoLabel(input){
+  const label = document.getElementById('case_video_label');
+  if(!label) return;
+  if(input.files && input.files.length > 1){
+    label.textContent = `${input.files.length} videos seleccionados`;
+  }else if(input.files && input.files.length === 1){
+    label.textContent = input.files[0].name;
+  }else{
+    label.textContent = 'Seleccionar video(s)';
+  }
+}
+
+function bindNoveltyAttachmentInput(){
+  const input = document.getElementById('novelty_attachment');
+  const label = document.getElementById('novelty_attachment_name');
+  if(!input || !label) return;
+  input.addEventListener('change', () => {
+    label.textContent = input.files && input.files.length ? input.files[0].name : 'Sin archivo seleccionado';
+  });
+}
+
+function esc(v){ return String(v || '').replaceAll('"','&quot;'); }
+function optionList(list, selected=''){ return list.map(v => `<option value="${esc(v)}" ${v===selected?'selected':''}>${v}</option>`).join(''); }
+function removableHeader(title, cls){ return `<div class="object-row-header"><div class="object-row-title">${title}</div><button type="button" class="object-remove" onclick="this.closest('.${cls}').remove()">Eliminar</button></div>`; }
+function showWizardError(msg){ const el=document.getElementById('wizardError'); el.textContent=msg; el.classList.remove('d-none'); el.scrollIntoView({behavior:'smooth', block:'center'}); }
+function hideWizardError(){ document.getElementById('wizardError').classList.add('d-none'); }
+function clearInvalids(){ document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid')); }
+function validateFilled(elements, msg){
+  for(const el of elements){
+    if(el.offsetParent===null || el.disabled || el.type==='hidden' || el.type==='file') continue;
+    if(!(el.value || '').trim()){
+      el.classList.add('is-invalid');
+      showWizardError(msg);
+      el.focus();
+      return false;
+    }
+  }
+  return true;
+}
+
+// ---------------- ALERTA ----------------
+function toggleAlarm(){
+  const select = document.getElementById('alarm_activated');
+  const block = document.getElementById('alarmBlock');
+  const alertStateWrap = document.getElementById('alertStateWrap');
+  const discardedWrap = document.getElementById('discardedWrap');
+  if(!select || !block) return;
+  const yes = select.value === 'SI';
+  if(yes){
+    block.classList.remove('d-none');
+    block.style.display = 'block';
+    block.hidden = false;
+    if(alertStateWrap) alertStateWrap.classList.remove('d-none');
+    toggleDiscarded();
+  } else {
+    block.classList.add('d-none');
+    block.style.display = 'none';
+    block.hidden = true;
+    if(alertStateWrap) alertStateWrap.classList.add('d-none');
+    if(discardedWrap) discardedWrap.classList.add('d-none');
+    const state = document.getElementById('alert_state');
+    const reason = document.getElementById('discarded_reason');
+    if(state) state.value = '';
+    if(reason) reason.value = '';
+  }
+}
+function toggleProcessRules(){
+  const process = ((document.getElementById('process') || {}).value || '').toUpperCase();
+  const showCentral = process === 'HURTO';
+  document.getElementById('centralCodeWrap')?.classList.toggle('d-none', !showCentral);
+  document.getElementById('centralNameWrap')?.classList.toggle('d-none', !showCentral);
+}
+
+// --------------- ESPACIO TIEMPO ---------------
+function toggleDiscarded(){
+  const state = document.getElementById('alert_state');
+  const stateWrap = document.getElementById('alertStateWrap');
+  const reasonWrap = document.getElementById('discardedWrap');
+  const yes = document.getElementById('alarm_activated')?.value === 'SI';
+  if(stateWrap) stateWrap.classList.toggle('d-none', !yes);
+  if(reasonWrap) reasonWrap.classList.toggle('d-none', !(yes && state && state.value === 'Descartado'));
+}
+
+function fillStore(code){
+  const data = storesCatalog.find(r => String(r.store_code) === String(code));
+  if(!data) return;
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if(el) el.value = val || '';
+  };
+  setVal('central_code', data.central_code);
+  setVal('central_name', data.central_name);
+  setVal('store_name_view', data.store_name);
+  setVal('format_view', data.format);
+  setVal('province_view', data.province);
+  setVal('canton_view', data.canton);
+  setVal('region_view', data.region);
+  setVal('district_view', data.district);
+  setVal('zone_view', data.zone);
+  setVal('lat_view', data.lat);
+  setVal('lng_view', data.lng);
+  setVal('subzone_view', data.subzone);
+  setVal('police_district_view', data.police_district);
+  setVal('circuit_view', data.circuit);
+  setVal('subcircuit_view', data.subcircuit);
+  setVal('subcircuit_code_view', data.subcircuit_code);
+}
+
+function syncCentralName(){
+  const code = document.getElementById('central_code')?.value || '';
+  const central = centralCatalog.find(c => String(c.code) === String(code));
+  const nameField = document.getElementById('central_name');
+  if(nameField) nameField.value = central ? (central.name || '') : '';
+}
+
+function rebuildStoreOptionsFromCentral(){
+  const storeSelect = document.getElementById('store_code');
+  const centralCode = document.getElementById('central_code')?.value || '';
+  if(!storeSelect) return;
+  const prev = storeSelect.value;
+  const rows = centralCode ? storesCatalog.filter(r => String(r.central_code) === String(centralCode)) : storesCatalog;
+  storeSelect.innerHTML = '<option value=""></option>' + rows.map(r => `<option value="${r.store_code}">${r.store_code} - ${r.store_name}</option>`).join('');
+  if(rows.some(r => String(r.store_code) === String(prev))){
+    storeSelect.value = prev;
+  } else if(rows.length === 1){
+    storeSelect.value = rows[0].store_code;
+  }
+  if(storeSelect.value){
+    fillStore(storeSelect.value);
+  } else {
+    ['store_name_view','format_view','province_view','canton_view','region_view','district_view','zone_view','lat_view','lng_view','subzone_view','police_district_view','circuit_view','subcircuit_view','subcircuit_code_view'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value='';
+    });
+  }
+}
+
+
+// --------------- NOVEDAD ---------------
+function loadSubtypeOptions(){
+  const type = document.getElementById('novelty_type')?.value;
+  const subtype = document.getElementById('novelty_subtype');
+  const modality = document.getElementById('modality');
+  if(!subtype || !modality) return;
+  subtype.innerHTML = '<option value=""></option>';
+  modality.innerHTML = '<option value=""></option>';
+  if(!type || !noveltyMatrix[type]) return;
+  subtype.innerHTML += Object.keys(noveltyMatrix[type]).map(v => `<option value="${esc(v)}">${v}</option>`).join('');
+}
+function loadModalityOptions(){
+  const modality = document.getElementById('modality');
+  if(!modality) return;
+  modality.innerHTML = '<option value=""></option>';
+  const values = Array.isArray(modalidadCatalogo) ? modalidadCatalogo : [];
+  modality.innerHTML += values.map(v => `<option value="${esc(v)}">${v}</option>`).join('');
+}
+
+// --------------- DYNAMIC SECTIONS ---------------
+function toggleVictims(){ document.getElementById('victimSection')?.classList.toggle('d-none', document.getElementById('has_victims')?.value !== 'SI'); }
+function toggleSuspects(){ document.getElementById('suspectSection')?.classList.toggle('d-none', document.getElementById('has_suspects')?.value !== 'SI'); }
+function toggleVehicles(){ document.getElementById('vehicleSection')?.classList.toggle('d-none', document.getElementById('has_vehicles')?.value !== 'SI'); }
+function toggleProcessed(){ document.getElementById('processedSection')?.classList.toggle('d-none', document.getElementById('has_processed')?.value !== 'SI'); }
+function toggleMerchandise(){ document.getElementById('merchSection')?.classList.toggle('d-none', document.getElementById('has_merchandise')?.value !== 'SI'); }
+function togglePenal(){
+  const exists = document.getElementById('has_penal_process')?.value === 'SI';
+  document.getElementById('penalSection')?.classList.toggle('d-none', !exists);
+  const type = document.getElementById('penal_process_type')?.value;
+  const auxLabel = document.getElementById('penal_aux_label');
+  if(auxLabel) auxLabel.textContent = type === 'INVESTIGACION' ? '¿Existe delegación?' : '¿Existe denuncia?';
+  const auxExists = document.getElementById('penal_aux_exists')?.value === 'SI';
+  document.getElementById('investigacionFields')?.classList.toggle('d-none', !(exists && auxExists && type === 'INVESTIGACION'));
+  document.getElementById('flagranciaFields')?.classList.toggle('d-none', !(exists && auxExists && type === 'FLAGRANCIA'));
+}
+
+
+function addDiligenceRow(containerId, item = {}){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  const count = container.querySelectorAll('.diligence-row').length + 1;
+  container.insertAdjacentHTML('beforeend', `
+    <div class="event-grid diligence-row">
+      <div class="field-span-3">
+        <label class="form-label">Fecha de diligencia ${count}</label>
+        <input type="date" class="form-control diligence-date" value="${esc(item.fecha || '')}">
+      </div>
+      <div class="field-span-4">
+        <label class="form-label">PDF diligencia ${count}</label>
+        <input type="file" accept="application/pdf" class="form-control diligence-file">
+        ${item.documento ? `<div class="small text-muted mt-1">Documento previo: ${esc(item.documento)}</div>` : ''}
+      </div>
+      <div class="field-span-3">
+        <label class="form-label">Estado de la diligencia ${count}</label>
+        <select class="form-select diligence-status">
+          ${optionList(['Atendido','Pendiente','No acogido'], item.estado || 'Atendido')}
+        </select>
+      </div>
+      <div class="field-span-2 diligence-remove-wrap">
+        <button type="button" class="btn btn-outline-light diligence-remove-btn" onclick="this.closest('.diligence-row').remove()">Quitar</button>
+      </div>
+      <div class="field-span-12">
+        <label class="form-label">Solicitud de diligencias y actuaciones ${count}</label>
+        <textarea rows="4" class="form-control diligence-request detail-expanded" placeholder="Detalle la solicitud de diligencias y actuaciones...">${esc(item.solicitud || item.solicitud_actuacion || '')}</textarea>
+      </div>
+    </div>`);
+}
+
+// --------------- REPEATABLE SECTIONS ---------------
+
+function updateWeaponClass(select){
+  const row = select.closest('.suspect-row');
+  const target = row?.querySelector('.suspect-clase-arma');
+  if(!target) return;
+  let opts = [];
+  if(select.value === 'Arma de fuego') opts = armaFuegoOptions;
+  else if(select.value === 'Arma blanca') opts = armaBlancaOptions;
+  else if(select.value === 'Objeto contundente') opts = armaContundenteOptions;
+  target.innerHTML = select.value === 'Sin arma' ? '<option value="">No aplica</option>' : optionList(opts);
+  target.disabled = select.value === 'Sin arma';
+}
+
+function addVictim(data={cedula:'',nombres:'',cargo:'',edad:'',sexo:'',tipo_lesion:'',observacion:''}){
+  const idx=document.querySelectorAll('.victim-row').length+1;
+  document.getElementById('victimsContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row victim-row">${removableHeader('Víctima #'+idx,'victim-row')}
+      <div class="event-grid">
+        <div class="field-span-3"><label class="form-label">Cédula</label><input class="form-control victim-cedula" value="${esc(data.cedula)}"></div>
+        <div class="field-span-5"><label class="form-label">Nombres completos</label><input class="form-control victim-nombres" value="${esc(data.nombres)}"></div>
+        <div class="field-span-4"><label class="form-label">Cargo</label><input class="form-control victim-cargo" value="${esc(data.cargo)}"></div>
+        <div class="field-span-2"><label class="form-label">Edad</label><input class="form-control victim-edad" value="${esc(data.edad)}"></div>
+        <div class="field-span-3"><label class="form-label">Sexo</label><select class="form-select victim-sexo"><option>Hombre</option><option>Mujer</option></select></div>
+        <div class="field-span-7"><label class="form-label">Tipo de lesión</label><input class="form-control victim-tipo-lesion" value="${esc(data.tipo_lesion)}"></div>
+        <div class="field-span-12"><label class="form-label">Observación</label><textarea class="form-control victim-observacion" rows="2">${esc(data.observacion)}</textarea></div>
+      </div>
+    </div>`);
+}
+
+
+function updateArmaClase(select){
+  const row = select.closest('.suspect-row');
+  if(!row) return;
+  const arma = select.value;
+  const clase = row.querySelector('.suspect-clase-arma');
+  if(!clase) return;
+  let opts = [];
+  if(arma === 'Arma de fuego') opts = armaFuegoOptions;
+  else if(arma === 'Arma blanca') opts = armaBlancaOptions;
+  else if(arma === 'Objeto contundente') opts = armaContundenteOptions;
+  clase.innerHTML = arma === 'Sin arma'
+    ? '<option value="">No aplica</option>'
+    : optionList(opts);
+  clase.disabled = arma === 'Sin arma';
+}
+
+function addSuspect(data={}){
+  const idx=document.querySelectorAll('.suspect-row').length+1;
+  document.getElementById('suspectsContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row suspect-row">${removableHeader('Perfil #'+idx,'suspect-row')}
+      <div class="event-grid">
+        <div class="field-span-4"><label class="form-label">Nombre</label><input class="form-control suspect-nombre" value="${esc(data.nombre || '')}"></div>
+        <div class="field-span-2"><label class="form-label">Sexo</label><select class="form-select suspect-sexo">${optionList(['Hombre','Mujer'], data.sexo || 'Hombre')}</select></div>
+        <div class="field-span-2"><label class="form-label">Edad aproximada</label><select class="form-select suspect-edad"><option value=""></option>${optionList(edadesOptions, data.edad_aprox || '')}</select></div>
+        <div class="field-span-4"><label class="form-label">Nacionalidad</label><select class="form-select suspect-nacionalidad">${optionList(nationalities, data.nacionalidad || 'Ecuador')}</select></div>
+
+        <div class="field-span-4"><label class="form-label">Contextura física</label><select class="form-select suspect-contextura">${optionList(contexturaOptions, data.contextura || '')}</select></div>
+        <div class="field-span-4"><label class="form-label">Etnia</label><select class="form-select suspect-etnia">${optionList(etniaOptions, data.etnia || '')}</select></div>
+        <div class="field-span-4"><label class="form-label">Tipo de cabello</label><select class="form-select suspect-cabello">${optionList(cabelloOptions, data.cabello || '')}</select></div>
+
+        <div class="field-span-4"><label class="form-label">Situación del sospechoso</label><select class="form-select suspect-situacion">${optionList(suspectStatusOptions, data.situacion || '')}</select></div>
+        <div class="field-span-4"><label class="form-label">Antecedentes operacionales</label><select class="form-select suspect-antecedentes">${optionList(antecedentesOptions, data.antecedentes || '')}</select></div>
+        <div class="field-span-4"><label class="form-label">Tipo de organización</label><select class="form-select suspect-tipo-org">${optionList(tiposOrganizacion, data.tipo_organizacion || '')}</select></div>
+
+        <div class="field-span-4"><label class="form-label">Nombre de la organización</label><select class="form-select suspect-org-name">${optionList(orgNames, data.organizacion_nombre || '')}</select></div>
+        <div class="field-span-4"><label class="form-label">Arma identificada</label><select class="form-select suspect-arma-identificada" onchange="updateWeaponClass(this)">${optionList(armaIdentificadaOptions, data.arma_identificada || '')}</select></div>
+        <div class="field-span-4"><label class="form-label">Clase de arma</label><select class="form-select suspect-clase-arma"></select></div>
+
+        <div class="field-span-4"><label class="form-label">Movilización</label><select class="form-select suspect-movilizacion">${optionList(movilizacionOptions, data.movilizacion || '')}</select></div>
+        <div class="field-span-12"><label class="form-label">Actividad sospechosa</label><select class="form-select suspect-actividad">${optionList(actividadPersonaOptions, data.actividad || '')}</select></div>
+
+        <div class="field-span-4"><label class="form-label">Marcas físicas</label><select class="form-select suspect-marcas">${optionList(marcasFisicasOptions, data.marcas_fisicas || '')}</select></div>
+        <div class="field-span-4"><label class="form-label">Detalle marcas</label><input class="form-control suspect-detalle-marcas" value="${esc(data.detalle_marcas || '')}"></div>
+        <div class="field-span-4"><label class="form-label">Foto persona</label><input type="file" accept="image/*" class="form-control suspect-foto" onchange="captureDynamicPhoto(this, '.suspect-foto-data', '.suspect-foto-note')"><input type="hidden" class="suspect-foto-data" value="${esc(data.foto_persona || '')}"><small class="text-muted suspect-foto-note">${data.foto_persona ? "Fotografía cargada" : "Sin fotografía cargada"}</small></div>
+      </div>
+    </div>`);
+  const newRow = document.querySelectorAll('.suspect-row')[document.querySelectorAll('.suspect-row').length-1];
+  const weaponSelect = newRow?.querySelector('.suspect-arma-identificada');
+  if(weaponSelect){
+    updateWeaponClass(weaponSelect);
+    const classSelect = newRow.querySelector('.suspect-clase-arma');
+    if(classSelect && data.clase_arma) classSelect.value = data.clase_arma;
+  }
+}
+
+
+
+
+function addVehicle(data={}){
+  const idx=document.querySelectorAll('.vehicle-row').length+1;
+  document.getElementById('vehiclesContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row vehicle-row">${removableHeader('Vehículo #'+idx,'vehicle-row')}
+      <div class="event-grid">
+        <div class="field-span-3"><label class="form-label">Tipo de vehículo</label><select class="form-select vehicle-tipo">${optionList(vehicleTypeOptions, data.tipo_vehiculo || '')}</select></div>
+        <div class="field-span-3"><label class="form-label">Marca</label><select class="form-select vehicle-marca">${optionList(vehicleBrandOptions, data.marca || '')}</select></div>
+        <div class="field-span-3"><label class="form-label">Placas</label><input class="form-control vehicle-placas" value="${esc(data.placas || '')}"></div>
+        <div class="field-span-3"><label class="form-label">Características particulares</label><select class="form-select vehicle-caracteristicas">${optionList(vehicleCharacteristicOptions, data.caracteristicas || '')}</select></div>
+
+        <div class="field-span-3"><label class="form-label">Color</label><select class="form-select vehicle-color">${optionList(vehicleColorOptions, data.color || '')}</select></div>
+        <div class="field-span-3"><label class="form-label">Número de pasajeros</label><select class="form-select vehicle-pasajeros"><option value=""></option>${optionList(passengerOptions, data.numero_pasajeros || '')}</select></div>
+        <div class="field-span-6"><label class="form-label">Actividad sospechosa</label><select class="form-select vehicle-actividades">${optionList(actividadVehiculoOptions, data.actividades_sospechosas || '')}</select></div>
+
+        <div class="field-span-6"><label class="form-label">Foto vehículo</label><input type="file" accept="image/*" class="form-control vehicle-foto" onchange="captureDynamicPhoto(this, '.vehicle-foto-data', '.vehicle-foto-note')"><input type="hidden" class="vehicle-foto-data" value="${esc(data.foto_vehiculo || '')}"><small class="text-muted vehicle-foto-note">${data.foto_vehiculo ? "Fotografía cargada" : "Sin fotografía cargada"}</small></div>
+      </div>
+    </div>`);
+}
+
+
+function addMerch(data={tipo_producto:'Mercadería',nombre_producto:'',cantidad:'1',estadistico:'',valor:'',fotos:[]}){ 
+  data = {
+    tipo_producto: data.tipo_producto || data.producto || 'Mercadería',
+    nombre_producto: data.nombre_producto || data.descripcion || data.producto || '',
+    cantidad: data.cantidad || '1',
+    estadistico: data.estadistico || '',
+    valor: data.valor || '',
+    fotos: Array.isArray(data.fotos) ? data.fotos : []
+  };
+  const idx=document.querySelectorAll('.merch-row').length+1;
+  document.getElementById('merchContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row merch-row">${removableHeader('Producto #'+idx,'merch-row')}
+      <div class="event-grid">
+        <div class="field-span-4"><label class="form-label">Tipo de producto</label><select class="form-select merch-producto">${optionList(productTypes,data.tipo_producto)}</select></div>
+        <div class="field-span-4"><label class="form-label">Nombre del producto</label><input class="form-control merch-nombre" value="${esc(data.nombre_producto)}"></div>
+        <div class="field-span-2"><label class="form-label">Cantidad</label><input class="form-control merch-cantidad" value="${esc(data.cantidad)}"></div>
+        <div class="field-span-1"><label class="form-label">Estadístico</label><input class="form-control merch-estadistico" value="${esc(data.estadistico)}"></div>
+        <div class="field-span-1"><label class="form-label">Valor</label><input class="form-control merch-valor" value="${esc(data.valor)}"></div>
+        <div class="field-span-12">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <label class="form-label mb-0">Fotografías del producto</label>
+            <button type="button" class="btn btn-outline-light btn-sm" onclick="addMerchPhoto(this.closest('.merch-row'))"><i class="bi bi-camera me-1"></i>Agregar fotografía</button>
+          </div>
+          <div class="merch-photos mt-2"></div>
+        </div>
+      </div>
+    </div>`);
+  const row = document.querySelectorAll('.merch-row')[document.querySelectorAll('.merch-row').length-1];
+  const photos = data.fotos.length ? data.fotos : [''];
+  photos.forEach(p => addMerchPhoto(row, p));
+}
+function addProcessed(){
+  const idx=document.querySelectorAll('.processed-row').length+1;
+  document.getElementById('processedContainer').insertAdjacentHTML('beforeend',
+    `<div class="object-row processed-row">${removableHeader('Procesado #'+idx,'processed-row')}
+      <div class="event-grid">
+        <div class="field-span-3"><label class="form-label">Cédula</label><input class="form-control processed-cedula"></div>
+        <div class="field-span-5"><label class="form-label">Nombres y apellidos</label><input class="form-control processed-nombres"></div>
+        <div class="field-span-2"><label class="form-label">Sexo</label><select class="form-select processed-sexo"><option>Hombre</option><option>Mujer</option></select></div>
+        <div class="field-span-2"><label class="form-label">Edad</label><input class="form-control processed-edad"></div>
+      </div>
+    </div>`);
+}
+
+
+function captureDynamicPhoto(input, hiddenSelector, noteSelector){
+  const row = input.closest('.object-row');
+  if(!row) return;
+  const hidden = row.querySelector(hiddenSelector);
+  const note = row.querySelector(noteSelector);
+  const file = input.files && input.files[0];
+  if(!hidden || !file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    hidden.value = e.target.result || '';
+    if(note) note.textContent = 'Fotografía cargada';
+    saveProfilesDraft();
+  };
+  reader.readAsDataURL(file);
+}
+
+function addMerchPhoto(row, existingValue=''){
+  if(!row) return;
+  const wrap = row.querySelector('.merch-photos');
+  if(!wrap) return;
+  const index = wrap.querySelectorAll('.merch-photo-item').length + 1;
+  const item = document.createElement('div');
+  item.className = 'merch-photo-item mt-2';
+  item.innerHTML = `
+    <div class="event-grid">
+      <div class="field-span-10">
+        <label class="form-label">Fotografía ${index}</label>
+        <input type="file" accept="image/*" class="form-control merch-foto-input">
+        <input type="hidden" class="merch-foto-data" value="${esc(existingValue || '')}">
+        <small class="text-muted merch-foto-note">${existingValue ? 'Fotografía cargada' : 'Sin fotografía cargada'}</small>
+      </div>
+      <div class="field-span-2 d-flex align-items-end">
+        <button type="button" class="btn btn-outline-light btn-sm w-100" onclick="this.closest('.merch-photo-item').remove()"><i class="bi bi-trash me-1"></i>Quitar</button>
+      </div>
+    </div>`;
+  wrap.appendChild(item);
+  const input = item.querySelector('.merch-foto-input');
+  const hidden = item.querySelector('.merch-foto-data');
+  const note = item.querySelector('.merch-foto-note');
+  input.addEventListener('change', function(){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      hidden.value = e.target.result || '';
+      note.textContent = 'Fotografía cargada';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+
+function getProfilesDraftPayload(){
+  serializeObjects();
+  return {
+    has_suspects: document.getElementById('has_suspects')?.value || 'NO',
+    has_vehicles: document.getElementById('has_vehicles')?.value || 'NO',
+    suspects: JSON.parse(document.getElementById('suspects_json')?.value || '[]'),
+    vehicles: JSON.parse(document.getElementById('vehicles_json')?.value || '[]')
+  };
+}
+
+function saveProfilesDraft(){
+  try{
+    const payload = getProfilesDraftPayload();
+    localStorage.setItem(profilesDraftKey, JSON.stringify(payload));
+  }catch(e){}
+}
+
+function restoreProfilesDraft(){
+  if(existingCase) return;
+  try{
+    const raw = localStorage.getItem(profilesDraftKey);
+    if(!raw) return;
+    const payload = JSON.parse(raw);
+    if(document.getElementById('has_suspects')) document.getElementById('has_suspects').value = payload.has_suspects || 'NO';
+    if(document.getElementById('has_vehicles')) document.getElementById('has_vehicles').value = payload.has_vehicles || 'NO';
+    if(Array.isArray(payload.suspects) && payload.suspects.length){
+      document.getElementById('suspectsContainer').innerHTML = '';
+      payload.suspects.forEach(s => addSuspect(s));
+    }
+    if(Array.isArray(payload.vehicles) && payload.vehicles.length){
+      document.getElementById('vehiclesContainer').innerHTML = '';
+      payload.vehicles.forEach(v => addVehicle(v));
+    }
+    toggleProfileSections?.();
+  }catch(e){}
+}
+
+// --------------- VALIDATION / NAV ---------------
+function validateStep(idx){
+  clearInvalids();
+  hideWizardError();
+  if(idx===0){
+    if(!validateFilled(document.querySelectorAll('.step1-core'), 'Complete generación de alerta, proceso y actividad operativa antes de continuar.')) return false;
+    if(document.getElementById('alarm_activated').value === 'NO') return true;
+    return validateFilled(document.querySelectorAll('.step1-conditional'), 'Complete las variables operativas de ALERTA antes de continuar.');
+  }
+  if(idx===1) return validateFilled(document.querySelectorAll('#step-espacio-tiempo input, #step-espacio-tiempo select'), 'Complete ESPACIO TIEMPO antes de continuar.');
+  if(idx===2) return validateFilled(document.querySelectorAll('#step-novedad input, #step-novedad select, #step-novedad textarea'), 'Complete NOVEDAD antes de continuar.');
+  return true;
+}
+function goToStep(idx, force=false){
+  if(idx<0 || idx>=stepIds.length) return;
+  if(!force && idx>currentStep && !validateStep(currentStep)) return;
+  currentStep = idx;
+  document.querySelectorAll('.wizard-step').forEach((s,i)=> s.classList.toggle('active', i===idx));
+  document.querySelectorAll('.wizard-btn').forEach((b,i)=>{
+    b.classList.toggle('active', i===idx);
+    b.classList.toggle('done', i<idx);
+  });
+  document.getElementById('prevStepBtn').disabled = idx===0;
+  document.getElementById('wizardProgressText').textContent = `Pantalla ${idx+1} de ${stepIds.length}`;
+  document.getElementById('nextStepBtn').innerHTML = idx===stepIds.length-1 ? 'Validar y guardar <i class="bi bi-check2-circle ms-2"></i>' : 'Siguiente<i class="bi bi-arrow-right ms-2"></i>';
+}
+function serializeObjects(){
+  const victims = [...document.querySelectorAll('.victim-row')].map(r=>({
+    cedula:r.querySelector('.victim-cedula')?.value || '',
+    nombres:r.querySelector('.victim-nombres')?.value || '',
+    cargo:r.querySelector('.victim-cargo')?.value || '',
+    edad:r.querySelector('.victim-edad')?.value || '',
+    sexo:r.querySelector('.victim-sexo')?.value || '',
+    tipo_lesion:r.querySelector('.victim-tipo-lesion')?.value || '',
+    observacion:r.querySelector('.victim-observacion')?.value || ''
+  })).filter(v => Object.values(v).some(Boolean));
+  document.getElementById('victims_json').value = JSON.stringify(victims);
+
+  const suspects = [...document.querySelectorAll('.suspect-row')].map(r=>({
+    nombre:r.querySelector('.suspect-nombre')?.value || '',
+    sexo:r.querySelector('.suspect-sexo')?.value || '',
+    edad_aprox:r.querySelector('.suspect-edad')?.value || '',
+    nacionalidad:r.querySelector('.suspect-nacionalidad')?.value || '',
+    contextura:r.querySelector('.suspect-contextura')?.value || '',
+    etnia:r.querySelector('.suspect-etnia')?.value || '',
+    cabello:r.querySelector('.suspect-cabello')?.value || '',
+    situacion:r.querySelector('.suspect-situacion')?.value || '',
+    antecedentes:r.querySelector('.suspect-antecedentes')?.value || '',
+    tipo_organizacion:r.querySelector('.suspect-tipo-org')?.value || '',
+    organizacion_nombre:r.querySelector('.suspect-org-name')?.value || '',
+    arma_identificada:r.querySelector('.suspect-arma-identificada')?.value || '',
+    clase_arma:r.querySelector('.suspect-clase-arma')?.value || '',
+    movilizacion:r.querySelector('.suspect-movilizacion')?.value || '',
+    actividad:r.querySelector('.suspect-actividad')?.value || '',
+    marcas_fisicas:r.querySelector('.suspect-marcas')?.value || '',
+    detalle_marcas:r.querySelector('.suspect-detalle-marcas')?.value || '',
+    foto_persona:r.querySelector('.suspect-foto-data')?.value || ''
+  })).filter(v => Object.values(v).some(Boolean));
+  document.getElementById('suspects_json').value = JSON.stringify(suspects);
+
+  const vehicles = [...document.querySelectorAll('.vehicle-row')].map(r=>({
+    tipo_vehiculo:r.querySelector('.vehicle-tipo')?.value || '',
+    marca:r.querySelector('.vehicle-marca')?.value || '',
+    placas:r.querySelector('.vehicle-placas')?.value || '',
+    color:r.querySelector('.vehicle-color')?.value || '',
+    numero_pasajeros:r.querySelector('.vehicle-pasajeros')?.value || '',
+    caracteristicas:r.querySelector('.vehicle-caracteristicas')?.value || '',
+    actividades_sospechosas:r.querySelector('.vehicle-actividades')?.value || '',
+    foto_vehiculo:r.querySelector('.vehicle-foto-data')?.value || ''
+  })).filter(v => Object.values(v).some(Boolean));
+  document.getElementById('vehicles_json').value = JSON.stringify(vehicles);
+
+  const merch = document.getElementById('has_merchandise')?.value === 'SI' ? [...document.querySelectorAll('.merch-row')].map(r=>({
+    tipo_producto:r.querySelector('.merch-producto')?.value || '',
+    nombre_producto:r.querySelector('.merch-nombre')?.value || '',
+    cantidad:r.querySelector('.merch-cantidad')?.value || '',
+    estadistico:r.querySelector('.merch-estadistico')?.value || '',
+    valor:r.querySelector('.merch-valor')?.value || '',
+    fotos:[...r.querySelectorAll('.merch-foto-data')].map(x => x.value || '').filter(Boolean)
+  })).filter(v => Object.values(v).some(val => Array.isArray(val) ? val.length : val)) : [];
+  document.getElementById('merchandise_json').value = JSON.stringify(merch);
+
+  const activeListId = document.getElementById('penal_process_type')?.value === 'FLAGRANCIA' ? '#flagranciaDiligenceList .diligence-row' : '#investigationDiligenceList .diligence-row';
+  const diligenceItems = [...document.querySelectorAll(activeListId)].map(r => ({
+    fecha: r.querySelector('.diligence-date')?.value || '',
+    estado: r.querySelector('.diligence-status')?.value || '',
+    documento: r.querySelector('.diligence-file')?.files?.[0]?.name || '',
+    solicitud: r.querySelector('.diligence-request')?.value || ''
+  })).filter(v => Object.values(v).some(Boolean));
+  document.getElementById('proceedings_json').value = JSON.stringify({summary: '', items: diligenceItems});
+
+  document.getElementById('photo_notes_json').value = JSON.stringify(
+    [...document.querySelectorAll('.photo-note')].map(x => x.value).filter(Boolean)
+  );
+  document.getElementById('processed_json').value = JSON.stringify([]);
+}
+
+
+function loadExistingCase(){
+  if(!existingCase) return;
+  const setVal = (id, val) => { const el=document.getElementById(id); if(el && val !== undefined && val !== null) el.value = val; };
+  ['police_unit','requested_by','process','sub_process','alarm_activated','chief_name','alert_time','security_company','security_operator','center_operator_time','center_operator_name','central_code','store_code','affectation','novelty_location','place_company','place_subtype','event_date','event_time','alert_state','discarded_reason','novelty_type','novelty_subtype','modality','number_of_members','detail','delegation','prosecutor_office','prosecutor_name','complaint_number','complaint_date','judicial_unit','cause_number','legal_status','hearing_date','precautionary_measure','legal_summary','has_victims','has_suspects','has_vehicles','has_processed','has_merchandise','has_penal_process','penal_process_type'].forEach(id => setVal(id, existingCase[id]));
+  if(document.querySelector('input[name="police_unit"]')) document.querySelector('input[name="police_unit"]').value = existingCase.police_unit || '';
+  if(document.querySelector('input[name="requested_by"]')) document.querySelector('input[name="requested_by"]').value = existingCase.requested_by || '';
+  if(existingCase.novelty_type){ loadSubtypeOptions(); setVal('novelty_subtype', existingCase.novelty_subtype); loadModalityOptions(); setVal('modality', existingCase.modality); }
+  if(Array.isArray(existingCase.victims)){ document.getElementById('victimsContainer').innerHTML=''; existingCase.victims.forEach(v=>addVictim(v)); if(!existingCase.victims.length) addVictim(); }
+  if(Array.isArray(existingCase.suspects)){ document.getElementById('suspectsContainer').innerHTML=''; existingCase.suspects.forEach(s=>addSuspect(s)); if(!existingCase.suspects.length) addSuspect(); }
+  if(Array.isArray(existingCase.vehicles)){ document.getElementById('vehiclesContainer').innerHTML=''; existingCase.vehicles.forEach(v=>addVehicle(v)); if(!existingCase.vehicles.length) addVehicle(); }
+  if(Array.isArray(existingCase.merchandise)){ document.getElementById('merchContainer').innerHTML=''; existingCase.merchandise.forEach(m=>addMerch(m)); if(!existingCase.merchandise.length) addMerch(); }
+  const pp = existingCase.proceedings_payload || {summary:'', items:[]};
+  setVal('proceedings', pp.summary || '');
+  setVal('proceedings_flagrancia', pp.summary || '');
+  if(Array.isArray(pp.items)){
+    const inv = document.getElementById('investigationDiligenceList'); if(inv){ inv.innerHTML=''; pp.items.forEach((item)=>addDiligenceRow('investigationDiligenceList', item)); if(!pp.items.length) addDiligenceRow('investigationDiligenceList');}
+    const fla = document.getElementById('flagranciaDiligenceList'); if(fla){ fla.innerHTML=''; pp.items.forEach((item)=>addDiligenceRow('flagranciaDiligenceList', item)); if(!pp.items.length) addDiligenceRow('flagranciaDiligenceList');}
+  }
+  if(Array.isArray(existingCase.photo_notes) && existingCase.photo_notes.length){
+    const notes = document.querySelectorAll('.photo-note');
+    existingCase.photo_notes.forEach((note, idx) => { if(notes[idx]) notes[idx].value = note || ''; });
+  }
+  const summaryBox = document.getElementById('existingUploadsSummary');
+  const summaryWrap = document.getElementById('editExistingUploadsBox');
+  if(summaryBox && summaryWrap){
+    const gallery = Array.isArray(existingCase.existing_gallery_files) ? existingCase.existing_gallery_files : [];
+    const videos = Array.isArray(existingCase.existing_video_files) ? existingCase.existing_video_files : [];
+    const annex = Array.isArray(existingCase.existing_annex_files) ? existingCase.existing_annex_files : [];
+    const parts = [];
+    if(gallery.length) parts.push(`<div><strong>Imágenes cargadas:</strong> ${gallery.length}</div>`);
+    if(videos.length) parts.push(`<div><strong>Videos cargados:</strong> ${videos.length}</div>`);
+    if(annex.length) parts.push(`<div><strong>Anexos/documentos cargados:</strong> ${annex.length}</div>`);
+    parts.push('<div class="text-muted mt-1">Al editar, los archivos ya guardados se conservan. Solo agrega nuevamente lo que realmente deseas reemplazar o complementar.</div>');
+    summaryBox.innerHTML = parts.join('');
+    summaryWrap.style.display = 'block';
+  }
+  document.querySelectorAll('.suspect-arma-identificada').forEach(updateWeaponClass);
+  syncCentralName();
+  rebuildStoreOptionsFromCentral();
+  if(existingCase.store_code){ document.getElementById('store_code').value = existingCase.store_code; fillStore(existingCase.store_code); }
+  toggleAlarm(); toggleProcessRules(); toggleDiscarded(); toggleVictims(); toggleSuspects(); toggleVehicles(); toggleMerchandise(); toggleProcessed(); togglePenal();
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  addVictim();
+  addSuspect();
+  addVehicle();
+  document.querySelectorAll('.suspect-arma-identificada').forEach(updateArmaClase);
+  document.querySelectorAll('.suspect-arma-identificada').forEach(updateWeaponClass);
+  restoreProfilesDraft();
+  addMerch();
+  addProcessed();
+
+  document.getElementById('alarm_activated')?.addEventListener('change', toggleAlarm);
+  document.getElementById('process')?.addEventListener('change', toggleProcessRules);
+  document.getElementById('alert_state')?.addEventListener('change', toggleDiscarded);
+  document.getElementById('has_victims')?.addEventListener('change', toggleVictims);
+  document.getElementById('has_suspects')?.addEventListener('change', toggleSuspects);
+  document.getElementById('has_vehicles')?.addEventListener('change', toggleVehicles);
+  document.getElementById('has_processed')?.addEventListener('change', toggleProcessed);
+  document.getElementById('has_merchandise')?.addEventListener('change', toggleMerchandise);
+  document.getElementById('has_penal_process')?.addEventListener('change', togglePenal);
+  document.getElementById('penal_process_type')?.addEventListener('change', togglePenal);
+  document.getElementById('penal_aux_exists')?.addEventListener('change', togglePenal);
+  document.getElementById('central_code')?.addEventListener('change', () => { syncCentralName(); rebuildStoreOptionsFromCentral(); });
+  document.getElementById('store_code')?.addEventListener('change', e => fillStore(e.target.value));
+  document.getElementById('novelty_type')?.addEventListener('change', () => { loadSubtypeOptions(); loadModalityOptions(); });
+  document.getElementById('novelty_subtype')?.addEventListener('change', loadModalityOptions);
+
+  bindNoveltyAttachmentInput();
+
+  document.querySelectorAll('.wizard-btn').forEach((b,i)=> b.addEventListener('click', ()=>{ if(i<=currentStep) goToStep(i,true); }));
+  document.getElementById('prevStepBtn')?.addEventListener('click', ()=> goToStep(currentStep-1,true));
+  document.getElementById('nextStepBtn')?.addEventListener('click', ()=>{
+    if(currentStep === stepIds.length-1){
+      if(validateStep(currentStep)){
+        serializeObjects();
+        document.getElementById('trackerForm').requestSubmit();
+      }
+    } else {
+      goToStep(currentStep+1,false);
+    }
+  });
+  document.getElementById('trackerForm')?.addEventListener('submit', e=>{
+    serializeObjects();
+    for(let i=0;i<stepIds.length;i++){
+      if(!validateStep(i)){
+        e.preventDefault();
+        goToStep(i,true);
+        return false;
+      }
+    }
+  });
+
+  syncCentralName();
+  rebuildStoreOptionsFromCentral();
+  if(document.getElementById('store_code')?.value){ fillStore(document.getElementById('store_code').value); }
+  toggleAlarm();
+  toggleProcessRules();
+  toggleDiscarded();
+  toggleVictims();
+  toggleSuspects();
+  toggleVehicles();
+  toggleProcessed();
+  if(document.getElementById('investigationDiligenceList') && !document.querySelector('#investigationDiligenceList .diligence-row')) addDiligenceRow('investigationDiligenceList');
+  if(document.getElementById('flagranciaDiligenceList') && !document.querySelector('#flagranciaDiligenceList .diligence-row')) addDiligenceRow('flagranciaDiligenceList');
+  togglePenal();
+  toggleMerchandise();
+  loadExistingCase();
+  goToStep(0,true);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="gdn-dashboard-shell v27-dashboard">
+  <section class="gdn-dashboard-hero gdn-dashboard-reference">
+    <div class="gdn-left-panel">
+      <div class="gdn-brand-hero">
+        <img src="/static/img/gdn-mark-v32.png" alt="GDN" class="gdn-brand-hero-img">
+        <div class="gdn-brand-textblock">
+          <div class="gdn-hero-subtitle">CENTRO DE ANÁLISIS Y</div>
+          <div class="gdn-hero-subtitle">SEGURIDAD EMPRESARIAL</div>
+        </div>
+      </div>
+
+      <div class="gdn-visual-stage">
+        <div class="gdn-grid"></div>
+        <div class="gdn-wave w1"></div>
+        <div class="gdn-wave w2"></div>
+        <div class="gdn-wave w3"></div>
+        <div class="gdn-trend-line t1"></div>
+        <div class="gdn-trend-line t2"></div>
+        <div class="gdn-trend-line t3"></div>
+        <div class="gdn-arrow-up"></div>
+        <div class="gdn-bars-cluster">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="gdn-micro-circles">
+          <div>21%</div><div>45%</div><div>72%</div>
+        </div>
+        <div class="gdn-mini-peaks">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <div class="gdn-hero-actions">
+        <a href="/cases/new" class="gdn-pill-btn">Nuevo caso</a>
+        <a href="/cases" class="gdn-pill-btn">Ver historial</a>
+        <a href="/reports" class="gdn-pill-btn">Reportes</a>
+      </div>
+    </div>
+
+    <div class="gdn-right-panel gdn-reference-stats">
+      <div class="gdn-stat-card">
+        <span class="gdn-stat-label">TOTAL CASOS</span>
+        <strong class="gdn-stat-value">{{ case_count }}</strong>
+      </div>
+      <div class="gdn-stat-card split">
+        <div><span class="gdn-stat-label">Directos</span><strong class="gdn-stat-mini">{{ direct_count or 75 }}</strong></div>
+        <div><span class="gdn-stat-label">Indirectos</span><strong class="gdn-stat-mini">{{ indirect_count or 25 }}</strong></div>
+      </div>
+      <div class="gdn-stat-card long">
+        <span class="gdn-stat-label">Alertas confirmadas</span>
+        <strong class="gdn-stat-value">{{ confirmed_count }}</strong>
+      </div>
+      <div class="gdn-stat-card long">
+        <span class="gdn-stat-label">Tiendas</span>
+        <strong class="gdn-stat-value">{{ stores_count }}</strong>
+        <small>Operatividad territorial</small>
+      </div>
+      <div class="gdn-stat-card long">
+        <span class="gdn-stat-label">Roles</span>
+        <strong class="gdn-stat-value">4</strong>
+        <small>Usuarios operativos</small>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

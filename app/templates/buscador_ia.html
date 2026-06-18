@@ -1,0 +1,137 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<div class="reports-hero mb-4">
+  <div>
+    <span class="hero-chip"><i class="bi bi-cpu me-2"></i>GDN · IA aplicada</span>
+    <h1 class="display-6 fw-bold mt-3 mb-2">Módulo de análisis e inteligencia empresarial</h1>
+    <p class="mb-0">Consulta integrada de personas, vehículos y casos vinculados, conforme al formato visual solicitado.</p>
+  </div>
+</div>
+
+<section class="module-card mb-4">
+  <div class="module-head"><div class="icon-box"><i class="bi bi-search"></i></div><div><h3>Filtros de búsqueda</h3><p>Realiza búsquedas por persona y por vehículo.</p></div></div>
+  <div class="module-body">
+    <form method="get" action="/buscador-ia" class="row g-3 align-items-end">
+      <div class="col-lg-5">
+        <label class="form-label">Búsqueda personas</label>
+        <input type="text" name="q_persona" value="{{ q_persona }}" class="form-control" placeholder="Cédula, nombre, organización, subtipo, tienda, subzona...">
+      </div>
+      <div class="col-lg-5">
+        <label class="form-label">Búsqueda vehículos</label>
+        <input type="text" name="q_vehiculo" value="{{ q_vehiculo }}" class="form-control" placeholder="Tipo, marca, placas, color, características...">
+      </div>
+      <div class="col-lg-2 d-grid">
+        <button class="btn btn-primary rounded-pill"><i class="bi bi-search me-2"></i>Buscar</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="ai-board">
+  <div class="ai-topbar">
+    <div class="ai-logo">GDN</div>
+    <div class="ai-title">ANÁLISIS E INTELIGENCIA EMPRESARIAL</div>
+    <div class="ai-icon"><i class="bi bi-diagram-3"></i></div>
+  </div>
+
+  <div class="ai-summary-grid">
+    <div class="ai-summary-box">
+      <h4>PERSONAS</h4>
+      <table class="ai-mini-table">
+        <tr><th>CÉDULA</th><td>{{ person_summary.cedula }}</td></tr>
+        <tr><th>NOMBRE</th><td>{{ person_summary.nombre }}</td></tr>
+        <tr><th>ORGANIZACIÓN</th><td>{{ person_summary.organizacion }}</td></tr>
+        <tr><th>CASO</th><td>{{ person_summary.caso }}</td></tr>
+      </table>
+    </div>
+
+    <div class="ai-lens"><i class="bi bi-search"></i></div>
+
+    <div class="ai-summary-box">
+      <h4>VEHÍCULOS</h4>
+      <table class="ai-mini-table">
+        <tr><th>TIPO</th><td>{{ vehicle_summary.tipo }}</td></tr>
+        <tr><th>MARCA</th><td>{{ vehicle_summary.marca }}</td></tr>
+        <tr><th>PLACA</th><td>{{ vehicle_summary.placa }}</td></tr>
+        <tr><th>COLOR</th><td>{{ vehicle_summary.color }}</td></tr>
+      </table>
+    </div>
+
+    <div class="ai-lens"><i class="bi bi-search"></i></div>
+  </div>
+
+  <div class="ai-results-grid">
+    <div class="ai-column">
+      {% for item in person_cases %}
+      <article class="ai-case-card">
+        <div class="ai-case-number">CASO No. {{ item.case_number }}</div>
+        <div class="ai-card-body two-col">
+          <div class="ai-silhouette person"></div>
+          <table class="ai-detail-table">
+            <tr><th>Nombre:</th><td>{{ item.nombre }}</td></tr>
+            <tr><th>Cédula:</th><td>{{ item.cedula }}</td></tr>
+            <tr><th>Sexo</th><td>{{ item.sexo }}</td></tr>
+            <tr><th>Edad</th><td>{{ item.edad }}</td></tr>
+            <tr><th>Antecedentes</th><td>{{ item.antecedentes }}</td></tr>
+            <tr><th>Situación sospechoso</th><td>{{ item.situacion }}</td></tr>
+            <tr><th>Nombre organización</th><td>{{ item.organizacion }}</td></tr>
+            <tr><th>subtipo novedad</th><td>{{ item.subtipo }}</td></tr>
+            <tr><th>Nombre tienda</th><td>{{ item.tienda }}</td></tr>
+            <tr><th>Subzona</th><td>{{ item.subzona }}</td></tr>
+          </table>
+        </div>
+      </article>
+      {% else %}
+      <div class="ai-empty-card">Sin coincidencias de personas.</div>
+      {% endfor %}
+    </div>
+
+    <div class="ai-column">
+      {% if linked_people %}
+      <div class="ai-linked-title">PERSONAS VINCULADAS</div>
+      {% endif %}
+      {% for item in linked_people %}
+      <article class="ai-case-card ai-linked-card">
+        <div class="ai-card-body two-col compact">
+          <div class="ai-silhouette linked"></div>
+          <table class="ai-detail-table">
+            <tr><th>Nombres:</th><td>{{ item.nombre }}</td></tr>
+            <tr><th>Cédula:</th><td>{{ item.cedula }}</td></tr>
+            <tr><th>Sexo</th><td>{{ item.sexo }}</td></tr>
+            <tr><th>Edad</th><td>{{ item.edad }}</td></tr>
+            <tr><th>Antecedentes</th><td>{{ item.antecedentes }}</td></tr>
+            <tr><th>Situación</th><td>{{ item.situacion }}</td></tr>
+            <tr><th>Nombre organización</th><td>{{ item.organizacion }}</td></tr>
+            <tr><th>subtipo novedad</th><td>{{ item.subtipo }}</td></tr>
+            <tr><th>Nombre tienda</th><td>{{ item.tienda }}</td></tr>
+            <tr><th>Subzona</th><td>{{ item.subzona }}</td></tr>
+          </table>
+        </div>
+      </article>
+      {% endfor %}
+
+      {% for item in vehicle_cases %}
+      <article class="ai-case-card">
+        <div class="ai-card-body two-col compact vehicle-row">
+          <div class="ai-silhouette car"></div>
+          <table class="ai-detail-table">
+            <tr><th>Tipo</th><td>{{ item.tipo }}</td></tr>
+            <tr><th>Marca</th><td>{{ item.marca }}</td></tr>
+            <tr><th>Placas</th><td>{{ item.placas }}</td></tr>
+            <tr><th>Color</th><td>{{ item.color }}</td></tr>
+            <tr><th>Subtipo novedad</th><td>{{ item.subtipo }}</td></tr>
+            <tr><th>Actividad sospechosa</th><td>{{ item.actividad }}</td></tr>
+            <tr><th>Características particulares</th><td>{{ item.caracteristicas }}</td></tr>
+          </table>
+        </div>
+      </article>
+      {% endfor %}
+
+      {% if not linked_people and not vehicle_cases %}
+      <div class="ai-empty-card">Ingresa datos de persona o vehículo para consultar casos vinculados.</div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

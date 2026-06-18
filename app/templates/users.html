@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card glass-card border-0"><div class="card-body p-4">
+      <h3 class="fw-bold mb-3">Crear usuario</h3>
+      <form method="post" class="vstack gap-3">
+        <input name="full_name" class="form-control" placeholder="Nombre completo" required>
+        <input name="username" class="form-control" placeholder="Usuario" required>
+        <input name="password" class="form-control" placeholder="Contraseña" required>
+        <select name="role" class="form-select">
+          <option value="admin">Administrador</option>
+          <option value="central_monitoreo">Central de monitoreo</option>
+          <option value="analista_hurtos">Analista de hurtos</option>
+          <option value="analista_delitos">Analista de delitos</option>
+        </select>
+        <button class="btn btn-primary rounded-pill">Guardar</button>
+      </form>
+    </div></div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card glass-card border-0"><div class="card-body p-0"><div class="table-responsive">
+      <table class="table table-dark mb-0"><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Fecha</th></tr></thead><tbody>{% for u in users %}<tr><td>{{ u.full_name }}</td><td>{{ u.username }}</td><td>{{ u.role }}</td><td>{{ u.created_at.strftime('%Y-%m-%d') }}</td></tr>{% endfor %}</tbody></table>
+    </div></div></div>
+  </div>
+</div>
+{% endblock %}
